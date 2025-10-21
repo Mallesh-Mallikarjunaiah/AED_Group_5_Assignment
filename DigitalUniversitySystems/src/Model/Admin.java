@@ -8,7 +8,6 @@ package Model;
  *
  * @author MALLESH
  */
-public class Person {
-    
-  
+public class Admin {
+   
 }
