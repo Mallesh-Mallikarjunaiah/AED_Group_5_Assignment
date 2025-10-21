@@ -26,8 +26,10 @@ public class InstitutionalReportsJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setMaximumSize(new java.awt.Dimension(755, 465));
-        setMinimumSize(new java.awt.Dimension(755, 465));
+        setBackground(new java.awt.Color(204, 255, 204));
+        setMaximumSize(new java.awt.Dimension(600, 465));
+        setMinimumSize(new java.awt.Dimension(600, 465));
+        setPreferredSize(new java.awt.Dimension(600, 465));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
