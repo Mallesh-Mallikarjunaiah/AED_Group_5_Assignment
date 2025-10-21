@@ -6,14 +6,14 @@ package UI.FacultyRole;
 
 /**
  *
- * @author jayan
+ * @author talha
  */
-public class FacultyDashboardJPanel extends javax.swing.JPanel {
+public class FacultyProfileJPanel extends javax.swing.JPanel {
 
     /**
-     * Creates new form FacultyDashboardJPanel
+     * Creates new form FacultyProfileJPanel
      */
-    public FacultyDashboardJPanel() {
+    public FacultyProfileJPanel() {
         initComponents();
     }
 
@@ -25,8 +25,6 @@ public class FacultyDashboardJPanel extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
-        setMinimumSize(new java.awt.Dimension(755, 465));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
