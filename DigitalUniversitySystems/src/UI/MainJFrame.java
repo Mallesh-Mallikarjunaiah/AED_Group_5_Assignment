@@ -31,8 +31,8 @@ public class MainJFrame extends javax.swing.JFrame {
         lblUserName = new javax.swing.JLabel();
         lblPassword = new javax.swing.JLabel();
         txtUserName = new javax.swing.JTextField();
-        txtPassword = new javax.swing.JTextField();
         btnLogin = new javax.swing.JButton();
+        txtPassword = new javax.swing.JPasswordField();
         workArea = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -148,7 +148,7 @@ public class MainJFrame extends javax.swing.JFrame {
     private javax.swing.JLabel lblPassword;
     private javax.swing.JLabel lblUserName;
     private javax.swing.JSplitPane splitPane;
-    private javax.swing.JTextField txtPassword;
+    private javax.swing.JPasswordField txtPassword;
     private javax.swing.JTextField txtUserName;
     private javax.swing.JPanel workArea;
     // End of variables declaration//GEN-END:variables
