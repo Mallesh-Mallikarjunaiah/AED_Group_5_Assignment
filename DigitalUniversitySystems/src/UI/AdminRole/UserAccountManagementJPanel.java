@@ -26,6 +26,7 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(755, 465));
         setMinimumSize(new java.awt.Dimension(755, 465));
 
