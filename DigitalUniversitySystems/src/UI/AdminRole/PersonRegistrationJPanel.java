@@ -6,14 +6,14 @@ package UI.AdminRole;
 
 /**
  *
- * @author jayan
+ * @author gagan
  */
-public class AdminDashboardJPanel extends javax.swing.JPanel {
+public class PersonRegistrationJPanel extends javax.swing.JPanel {
 
     /**
-     * Creates new form AdminDashboardJPanel
+     * Creates new form PersonRegistrationJPanel
      */
-    public AdminDashboardJPanel() {
+    public PersonRegistrationJPanel() {
         initComponents();
     }
 
