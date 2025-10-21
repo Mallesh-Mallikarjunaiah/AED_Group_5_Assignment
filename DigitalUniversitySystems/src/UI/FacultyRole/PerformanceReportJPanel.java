@@ -6,14 +6,14 @@ package UI.FacultyRole;
 
 /**
  *
- * @author jayan
+ * @author talha
  */
-public class FacultyDashboardJPanel extends javax.swing.JPanel {
+public class PerformanceReportJPanel extends javax.swing.JPanel {
 
     /**
-     * Creates new form FacultyDashboardJPanel
+     * Creates new form PerformanceReportJPanel
      */
-    public FacultyDashboardJPanel() {
+    public PerformanceReportJPanel() {
         initComponents();
     }
 
