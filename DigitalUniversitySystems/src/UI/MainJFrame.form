@@ -117,12 +117,12 @@
             </Component>
             <Component class="javax.swing.JTextField" name="txtUserName">
             </Component>
-            <Component class="javax.swing.JTextField" name="txtPassword">
-            </Component>
             <Component class="javax.swing.JButton" name="btnLogin">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Login"/>
               </Properties>
+            </Component>
+            <Component class="javax.swing.JPasswordField" name="txtPassword">
             </Component>
           </SubComponents>
         </Container>
