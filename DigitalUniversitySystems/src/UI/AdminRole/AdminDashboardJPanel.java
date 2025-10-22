@@ -26,23 +26,132 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        splitPane = new javax.swing.JSplitPane();
+        controlPanel = new javax.swing.JPanel();
+        lblTitle = new javax.swing.JLabel();
+        btnRecordsSearch = new javax.swing.JButton();
+        btnAnalyticsDashboard = new javax.swing.JButton();
+        btnPersonRegistration = new javax.swing.JButton();
+        btnUserAccountManagement = new javax.swing.JButton();
+        btnLogout = new javax.swing.JButton();
+        btnPersonProfile = new javax.swing.JButton();
+        workArea = new javax.swing.JPanel();
+
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
         setMinimumSize(new java.awt.Dimension(600, 465));
+
+        controlPanel.setBackground(new java.awt.Color(255, 255, 204));
+        controlPanel.setMaximumSize(new java.awt.Dimension(155, 465));
+        controlPanel.setMinimumSize(new java.awt.Dimension(155, 465));
+        controlPanel.setPreferredSize(new java.awt.Dimension(155, 465));
+
+        lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        lblTitle.setText("Welcome Admin");
+
+        btnRecordsSearch.setText("Records Search");
+
+        btnAnalyticsDashboard.setText("Analytics Dashboard");
+
+        btnPersonRegistration.setText("Person Registration");
+
+        btnUserAccountManagement.setText("User Account Management");
+        btnUserAccountManagement.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUserAccountManagementActionPerformed(evt);
+            }
+        });
+
+        btnLogout.setText("Logout");
+
+        btnPersonProfile.setText("Profile");
+
+        javax.swing.GroupLayout controlPanelLayout = new javax.swing.GroupLayout(controlPanel);
+        controlPanel.setLayout(controlPanelLayout);
+        controlPanelLayout.setHorizontalGroup(
+            controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(controlPanelLayout.createSequentialGroup()
+                .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(controlPanelLayout.createSequentialGroup()
+                        .addGap(14, 14, 14)
+                        .addComponent(btnLogout))
+                    .addComponent(btnUserAccountManagement, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(btnRecordsSearch, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE)
+                    .addGroup(controlPanelLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(btnPersonProfile, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnAnalyticsDashboard, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(lblTitle))))
+                .addContainerGap())
+            .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(controlPanelLayout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(btnPersonRegistration, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+        controlPanelLayout.setVerticalGroup(
+            controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(controlPanelLayout.createSequentialGroup()
+                .addGap(26, 26, 26)
+                .addComponent(lblTitle)
+                .addGap(91, 91, 91)
+                .addComponent(btnUserAccountManagement)
+                .addGap(18, 18, 18)
+                .addComponent(btnRecordsSearch)
+                .addGap(18, 18, 18)
+                .addComponent(btnAnalyticsDashboard)
+                .addGap(18, 18, 18)
+                .addComponent(btnPersonProfile)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 137, Short.MAX_VALUE)
+                .addComponent(btnLogout)
+                .addGap(17, 17, 17))
+            .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(controlPanelLayout.createSequentialGroup()
+                    .addGap(93, 93, 93)
+                    .addComponent(btnPersonRegistration)
+                    .addContainerGap(349, Short.MAX_VALUE)))
+        );
+
+        splitPane.setLeftComponent(controlPanel);
+
+        workArea.setBackground(new java.awt.Color(204, 255, 204));
+        workArea.setMaximumSize(new java.awt.Dimension(600, 465));
+        workArea.setMinimumSize(new java.awt.Dimension(600, 465));
+        workArea.setPreferredSize(new java.awt.Dimension(600, 465));
+        workArea.setLayout(new java.awt.CardLayout());
+        splitPane.setRightComponent(workArea);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 600, Short.MAX_VALUE)
+            .addComponent(splitPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 600, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 465, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(splitPane))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnUserAccountManagementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUserAccountManagementActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnUserAccountManagementActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAnalyticsDashboard;
+    private javax.swing.JButton btnLogout;
+    private javax.swing.JButton btnPersonProfile;
+    private javax.swing.JButton btnPersonRegistration;
+    private javax.swing.JButton btnRecordsSearch;
+    private javax.swing.JButton btnUserAccountManagement;
+    private javax.swing.JPanel controlPanel;
+    private javax.swing.JLabel lblTitle;
+    private javax.swing.JSplitPane splitPane;
+    private javax.swing.JPanel workArea;
     // End of variables declaration//GEN-END:variables
 }
