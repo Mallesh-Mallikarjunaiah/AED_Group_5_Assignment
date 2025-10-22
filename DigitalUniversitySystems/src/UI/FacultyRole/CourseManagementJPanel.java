@@ -26,24 +26,190 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCourses = new javax.swing.JTable();
+        lblTitle = new javax.swing.JLabel();
+        lblDescription = new javax.swing.JLabel();
+        lblSchedule = new javax.swing.JLabel();
+        lblCapacity = new javax.swing.JLabel();
+        lblCourseID = new javax.swing.JLabel();
+        lblStatus = new javax.swing.JLabel();
+        btnViewEdit = new javax.swing.JButton();
+        btnSave = new javax.swing.JButton();
+        btnUploadSyllabus = new javax.swing.JButton();
+        txtCourseID = new javax.swing.JTextField();
+        txtTitle = new javax.swing.JTextField();
+        txtDescription = new javax.swing.JTextField();
+        txtSchedule = new javax.swing.JTextField();
+        txtCapacity = new javax.swing.JTextField();
+        txtStatus = new javax.swing.JTextField();
+
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
         setMinimumSize(new java.awt.Dimension(600, 465));
         setPreferredSize(new java.awt.Dimension(600, 465));
 
+        tblCourses.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
+            },
+            new String [] {
+                "Course ID", "Title", "Description", "Schedule", "Capacity", "Status"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(tblCourses);
+
+        lblTitle.setText("Title");
+
+        lblDescription.setText("Description");
+
+        lblSchedule.setText("Schedule");
+
+        lblCapacity.setText("Capacity");
+
+        lblCourseID.setText("Course ID");
+
+        lblStatus.setText("Status");
+
+        btnViewEdit.setText("View/Edit");
+
+        btnSave.setText("Save");
+
+        btnUploadSyllabus.setText("Upload Syllabus");
+
+        txtTitle.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtTitleActionPerformed(evt);
+            }
+        });
+
+        txtDescription.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtDescriptionActionPerformed(evt);
+            }
+        });
+
+        txtCapacity.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtCapacityActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 755, Short.MAX_VALUE)
+            .addComponent(jScrollPane1)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(131, 131, 131)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(lblCourseID)
+                    .addComponent(lblStatus)
+                    .addComponent(lblCapacity)
+                    .addComponent(lblSchedule)
+                    .addComponent(lblDescription)
+                    .addComponent(lblTitle))
+                .addGap(46, 46, 46)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(txtStatus, javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(txtSchedule, javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(txtDescription, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE)
+                                .addComponent(txtCapacity, javax.swing.GroupLayout.Alignment.TRAILING))
+                            .addComponent(txtTitle, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 151, Short.MAX_VALUE))
+                        .addGap(98, 98, 98)
+                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(txtCourseID, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnViewEdit)))
+                .addGap(35, 35, 35))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnUploadSyllabus)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 465, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblCourseID)
+                    .addComponent(txtCourseID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnViewEdit))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblTitle)
+                    .addComponent(txtTitle, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSave))
+                .addGap(27, 27, 27)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblDescription)
+                    .addComponent(txtDescription, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblSchedule)
+                    .addComponent(txtSchedule, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblCapacity)
+                    .addComponent(txtCapacity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblStatus)
+                    .addComponent(txtStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnUploadSyllabus)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void txtTitleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTitleActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtTitleActionPerformed
+
+    private void txtDescriptionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtDescriptionActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDescriptionActionPerformed
+
+    private void txtCapacityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCapacityActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtCapacityActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnSave;
+    private javax.swing.JButton btnUploadSyllabus;
+    private javax.swing.JButton btnViewEdit;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblCapacity;
+    private javax.swing.JLabel lblCourseID;
+    private javax.swing.JLabel lblDescription;
+    private javax.swing.JLabel lblSchedule;
+    private javax.swing.JLabel lblStatus;
+    private javax.swing.JLabel lblTitle;
+    private javax.swing.JTable tblCourses;
+    private javax.swing.JTextField txtCapacity;
+    private javax.swing.JTextField txtCourseID;
+    private javax.swing.JTextField txtDescription;
+    private javax.swing.JTextField txtSchedule;
+    private javax.swing.JTextField txtStatus;
+    private javax.swing.JTextField txtTitle;
     // End of variables declaration//GEN-END:variables
 }

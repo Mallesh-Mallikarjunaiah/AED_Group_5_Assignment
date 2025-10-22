@@ -26,24 +26,143 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        cmbSelectCourse = new javax.swing.JComboBox<>();
+        lblSelectCourse = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblStudent = new javax.swing.JTable();
+        btnComputeGrade = new javax.swing.JButton();
+        btnSaveGrade = new javax.swing.JButton();
+        btnViewTranscriptSummary = new javax.swing.JButton();
+        btnRankStudents = new javax.swing.JButton();
+        lblClassAvgGPA = new javax.swing.JLabel();
+        lblTopPerformer = new javax.swing.JLabel();
+        txtClassAvgGPA = new javax.swing.JTextField();
+        txtTopPerformer = new javax.swing.JTextField();
+
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
         setMinimumSize(new java.awt.Dimension(600, 465));
         setPreferredSize(new java.awt.Dimension(600, 465));
 
+        lblSelectCourse.setText("Select Course :");
+
+        tblStudent.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Student ID", "Name", "Assign Score", "Midterm", "Final", "Total", "Grade"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, true, true, true, false, true
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(tblStudent);
+
+        btnComputeGrade.setText("Compute Final Grade");
+
+        btnSaveGrade.setText("Save Grades");
+        btnSaveGrade.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveGradeActionPerformed(evt);
+            }
+        });
+
+        btnViewTranscriptSummary.setText("View Transcript Summary");
+
+        btnRankStudents.setText("Rank Students");
+
+        lblClassAvgGPA.setText("Class Avg GPA : ");
+
+        lblTopPerformer.setText("Top Performer : ");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 755, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(lblSelectCourse)
+                        .addGap(33, 33, 33)
+                        .addComponent(cmbSelectCourse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(29, 29, 29)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(btnViewTranscriptSummary, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnRankStudents, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnSaveGrade, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnComputeGrade, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(225, 225, 225)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblClassAvgGPA)
+                            .addComponent(lblTopPerformer))
+                        .addGap(34, 34, 34)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtTopPerformer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtClassAvgGPA, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 465, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblSelectCourse)
+                    .addComponent(cmbSelectCourse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(33, 33, 33)
+                .addComponent(btnComputeGrade)
+                .addGap(18, 18, 18)
+                .addComponent(btnSaveGrade)
+                .addGap(18, 18, 18)
+                .addComponent(btnViewTranscriptSummary)
+                .addGap(18, 18, 18)
+                .addComponent(btnRankStudents)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblClassAvgGPA)
+                    .addComponent(txtClassAvgGPA, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblTopPerformer)
+                    .addComponent(txtTopPerformer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(34, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnSaveGradeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveGradeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSaveGradeActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnComputeGrade;
+    private javax.swing.JButton btnRankStudents;
+    private javax.swing.JButton btnSaveGrade;
+    private javax.swing.JButton btnViewTranscriptSummary;
+    private javax.swing.JComboBox<String> cmbSelectCourse;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblClassAvgGPA;
+    private javax.swing.JLabel lblSelectCourse;
+    private javax.swing.JLabel lblTopPerformer;
+    private javax.swing.JTable tblStudent;
+    private javax.swing.JTextField txtClassAvgGPA;
+    private javax.swing.JTextField txtTopPerformer;
     // End of variables declaration//GEN-END:variables
 }
