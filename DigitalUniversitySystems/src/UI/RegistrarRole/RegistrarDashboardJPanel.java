@@ -26,24 +26,127 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        setBackground(new java.awt.Color(204, 255, 204));
-        setMaximumSize(new java.awt.Dimension(600, 465));
-        setMinimumSize(new java.awt.Dimension(600, 465));
-        setPreferredSize(new java.awt.Dimension(600, 465));
+        splitPane = new javax.swing.JSplitPane();
+        controlArea = new javax.swing.JPanel();
+        btnCourseOffering = new javax.swing.JButton();
+        btnStudentRegistration = new javax.swing.JButton();
+        btnFinanceReports = new javax.swing.JButton();
+        btnInstitutionalReports = new javax.swing.JButton();
+        btnLogout = new javax.swing.JButton();
+        btnProfile = new javax.swing.JButton();
+        lblWelcomeTitle = new javax.swing.JLabel();
+        workArea = new javax.swing.JPanel();
+
+        setBackground(new java.awt.Color(255, 255, 255));
+        setMaximumSize(new java.awt.Dimension(755, 465));
+        setMinimumSize(new java.awt.Dimension(755, 465));
+        setPreferredSize(new java.awt.Dimension(755, 465));
+
+        controlArea.setBackground(new java.awt.Color(255, 255, 204));
+        controlArea.setMaximumSize(new java.awt.Dimension(155, 465));
+        controlArea.setMinimumSize(new java.awt.Dimension(155, 465));
+        controlArea.setPreferredSize(new java.awt.Dimension(155, 465));
+
+        btnCourseOffering.setText("Course Offering");
+        btnCourseOffering.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCourseOfferingActionPerformed(evt);
+            }
+        });
+
+        btnStudentRegistration.setText("Student Registration");
+
+        btnFinanceReports.setText("Finance Reports");
+
+        btnInstitutionalReports.setText("Institutional Reports");
+
+        btnLogout.setBackground(new java.awt.Color(255, 204, 204));
+        btnLogout.setText("Logout");
+
+        btnProfile.setText("Profile");
+
+        lblWelcomeTitle.setText("Welcome!");
+
+        javax.swing.GroupLayout controlAreaLayout = new javax.swing.GroupLayout(controlArea);
+        controlArea.setLayout(controlAreaLayout);
+        controlAreaLayout.setHorizontalGroup(
+            controlAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(controlAreaLayout.createSequentialGroup()
+                .addGroup(controlAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(controlAreaLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(controlAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(btnInstitutionalReports, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnStudentRegistration, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnFinanceReports, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnCourseOffering, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(controlAreaLayout.createSequentialGroup()
+                        .addGap(39, 39, 39)
+                        .addComponent(btnLogout))
+                    .addGroup(controlAreaLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(btnProfile, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(controlAreaLayout.createSequentialGroup()
+                        .addGap(51, 51, 51)
+                        .addComponent(lblWelcomeTitle)))
+                .addContainerGap(11, Short.MAX_VALUE))
+        );
+        controlAreaLayout.setVerticalGroup(
+            controlAreaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(controlAreaLayout.createSequentialGroup()
+                .addGap(17, 17, 17)
+                .addComponent(lblWelcomeTitle)
+                .addGap(37, 37, 37)
+                .addComponent(btnCourseOffering)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnStudentRegistration)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnFinanceReports)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnInstitutionalReports)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnProfile)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 143, Short.MAX_VALUE)
+                .addComponent(btnLogout)
+                .addGap(90, 90, 90))
+        );
+
+        splitPane.setLeftComponent(controlArea);
+
+        workArea.setBackground(new java.awt.Color(204, 255, 204));
+        workArea.setMaximumSize(new java.awt.Dimension(600, 465));
+        workArea.setMinimumSize(new java.awt.Dimension(600, 465));
+        workArea.setPreferredSize(new java.awt.Dimension(600, 465));
+        workArea.setLayout(new java.awt.CardLayout());
+        splitPane.setRightComponent(workArea);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 755, Short.MAX_VALUE)
+            .addComponent(splitPane)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 465, Short.MAX_VALUE)
+            .addComponent(splitPane)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnCourseOfferingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCourseOfferingActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnCourseOfferingActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCourseOffering;
+    private javax.swing.JButton btnFinanceReports;
+    private javax.swing.JButton btnInstitutionalReports;
+    private javax.swing.JButton btnLogout;
+    private javax.swing.JButton btnProfile;
+    private javax.swing.JButton btnStudentRegistration;
+    private javax.swing.JPanel controlArea;
+    private javax.swing.JLabel lblWelcomeTitle;
+    private javax.swing.JSplitPane splitPane;
+    private javax.swing.JPanel workArea;
     // End of variables declaration//GEN-END:variables
 }

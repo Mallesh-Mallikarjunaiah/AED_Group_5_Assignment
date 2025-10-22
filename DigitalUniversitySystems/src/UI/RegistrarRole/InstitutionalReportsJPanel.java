@@ -26,24 +26,116 @@ public class InstitutionalReportsJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        lblReportType = new javax.swing.JLabel();
+        jComboBoxFilter = new javax.swing.JComboBox<>();
+        radioEnrollmentByDepartment = new javax.swing.JRadioButton();
+        radioGPADistribution = new javax.swing.JRadioButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblInstitutionalReport = new javax.swing.JTable();
+        btnGenerateReport = new javax.swing.JButton();
+
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
         setMinimumSize(new java.awt.Dimension(600, 465));
+        setName(""); // NOI18N
         setPreferredSize(new java.awt.Dimension(600, 465));
+
+        lblReportType.setText("Report Type");
+
+        jComboBoxFilter.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxFilter.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxFilterActionPerformed(evt);
+            }
+        });
+
+        radioEnrollmentByDepartment.setText("Enrollment by Department");
+
+        radioGPADistribution.setText("GPA Distribution by Program");
+        radioGPADistribution.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioGPADistributionActionPerformed(evt);
+            }
+        });
+
+        tblInstitutionalReport.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Course ID", "Course Name", "Department", "Total Enrolled Students", "Capacity", "Capacity Used"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(tblInstitutionalReport);
+
+        btnGenerateReport.setBackground(new java.awt.Color(255, 204, 204));
+        btnGenerateReport.setText("Generate Report");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 755, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(37, 37, 37)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jComboBoxFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lblReportType)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(radioGPADistribution)
+                                    .addComponent(radioEnrollmentByDepartment)))
+                            .addComponent(btnGenerateReport)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(17, 17, 17)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 565, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(18, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 465, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(14, 14, 14)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblReportType)
+                    .addComponent(radioEnrollmentByDepartment))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(radioGPADistribution)
+                .addGap(18, 18, 18)
+                .addComponent(jComboBoxFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(btnGenerateReport)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(16, 16, 16))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void radioGPADistributionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_radioGPADistributionActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_radioGPADistributionActionPerformed
+
+    private void jComboBoxFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFilterActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jComboBoxFilterActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnGenerateReport;
+    private javax.swing.JComboBox<String> jComboBoxFilter;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblReportType;
+    private javax.swing.JRadioButton radioEnrollmentByDepartment;
+    private javax.swing.JRadioButton radioGPADistribution;
+    private javax.swing.JTable tblInstitutionalReport;
     // End of variables declaration//GEN-END:variables
 }

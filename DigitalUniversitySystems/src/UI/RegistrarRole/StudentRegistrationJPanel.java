@@ -26,24 +26,147 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        txtStudentNameID = new javax.swing.JTextField();
+        btnSearchStudent = new javax.swing.JButton();
+        lblStudentNameID = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblStudentRegistration = new javax.swing.JTable();
+        lblName = new javax.swing.JLabel();
+        fieldName = new javax.swing.JLabel();
+        lblID = new javax.swing.JLabel();
+        fieldID = new javax.swing.JLabel();
+        lblCreditsEnrolled = new javax.swing.JLabel();
+        fieldCredits = new javax.swing.JLabel();
+        btnEnroll = new javax.swing.JButton();
+        btnDrop = new javax.swing.JButton();
+
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
         setMinimumSize(new java.awt.Dimension(600, 465));
         setPreferredSize(new java.awt.Dimension(600, 465));
 
+        btnSearchStudent.setBackground(new java.awt.Color(255, 204, 204));
+        btnSearchStudent.setText("Search");
+        btnSearchStudent.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchStudentActionPerformed(evt);
+            }
+        });
+
+        lblStudentNameID.setText("Student Name/ID");
+
+        tblStudentRegistration.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Course ID", "Course Name", "Enrollment Status"
+            }
+        ));
+        jScrollPane1.setViewportView(tblStudentRegistration);
+
+        lblName.setText("Name: ");
+
+        fieldName.setText("//Name");
+
+        lblID.setText("ID: ");
+
+        fieldID.setText("//ID");
+
+        lblCreditsEnrolled.setText("Credits Enrolled:");
+
+        fieldCredits.setText("//Credits");
+
+        btnEnroll.setBackground(new java.awt.Color(255, 204, 204));
+        btnEnroll.setText("Enroll");
+
+        btnDrop.setBackground(new java.awt.Color(255, 204, 204));
+        btnDrop.setText("Drop");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 755, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 588, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(31, 31, 31)
+                                .addComponent(lblStudentNameID)
+                                .addGap(18, 18, 18)
+                                .addComponent(txtStudentNameID, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(btnSearchStudent))
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(lblName)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(fieldName)
+                                .addGap(54, 54, 54)
+                                .addComponent(lblID)
+                                .addGap(18, 18, 18)
+                                .addComponent(fieldID)
+                                .addGap(79, 79, 79)
+                                .addComponent(lblCreditsEnrolled)
+                                .addGap(18, 18, 18)
+                                .addComponent(fieldCredits)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(189, 189, 189)
+                .addComponent(btnEnroll)
+                .addGap(82, 82, 82)
+                .addComponent(btnDrop)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 465, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStudentNameID)
+                    .addComponent(txtStudentNameID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSearchStudent))
+                .addGap(49, 49, 49)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblName)
+                    .addComponent(fieldName)
+                    .addComponent(lblID)
+                    .addComponent(fieldID)
+                    .addComponent(lblCreditsEnrolled)
+                    .addComponent(fieldCredits))
+                .addGap(30, 30, 30)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(28, 28, 28)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnEnroll)
+                    .addComponent(btnDrop))
+                .addContainerGap(48, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnSearchStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchStudentActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSearchStudentActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnDrop;
+    private javax.swing.JButton btnEnroll;
+    private javax.swing.JButton btnSearchStudent;
+    private javax.swing.JLabel fieldCredits;
+    private javax.swing.JLabel fieldID;
+    private javax.swing.JLabel fieldName;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblCreditsEnrolled;
+    private javax.swing.JLabel lblID;
+    private javax.swing.JLabel lblName;
+    private javax.swing.JLabel lblStudentNameID;
+    private javax.swing.JTable tblStudentRegistration;
+    private javax.swing.JTextField txtStudentNameID;
     // End of variables declaration//GEN-END:variables
 }
