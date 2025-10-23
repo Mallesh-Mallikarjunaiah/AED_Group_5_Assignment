@@ -11,14 +11,19 @@ package Model;
 public class Person {
     
     String name;
-    static int UNID;
+    static int count=0;
+    int UNID;
     String email;
     String contactNumber;
 
-    public Person(String name, String email, String contactNumber) {
+    public Person(String name,String email, String contactNumber) {
+        UNID=++count;
         this.name = name;
         this.email = email;
         this.contactNumber = contactNumber;
+        
+        
+        
     }
     
     
@@ -31,13 +36,11 @@ public class Person {
         this.name = name;
     }
 
-    public static int getUNID() {
+    public int getUNID() {
         return UNID;
     }
-
-    public static void setUNID(int UNID) {
-        Person.UNID = UNID;
-    }
+    
+    
 
     public String getEmail() {
         return email;
