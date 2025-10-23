@@ -8,6 +8,20 @@ package Model;
  *
  * @author jayan
  */
-public class Registrar {
-    
+public class Registrar extends Person {
+    private String officeHours;
+
+    public Registrar(String name, String email, String ID, String officeHours) {
+        super(name, email, ID);
+        this.officeHours = officeHours;
+    }
+
+    // Getters and Setters (Needed for Profile Management)
+    public String getOfficeHours() {
+        return officeHours;
+    }
+
+    public void setOfficeHours(String officeHours) {
+        this.officeHours = officeHours;
+    }
 }

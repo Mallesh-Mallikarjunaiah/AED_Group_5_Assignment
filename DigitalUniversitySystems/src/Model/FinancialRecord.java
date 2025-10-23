@@ -9,5 +9,27 @@ package Model;
  * @author jayan
  */
 public class FinancialRecord {
-    
+    private String transactionID;
+    private Student student;
+    private double amount;
+    private String type; // E.g., "BILLED", "PAID", "REFUND"
+    private String semester;
+    private String date;
+
+    public FinancialRecord(String transactionID, Student student, double amount, String type, String semester, String date) {
+        this.transactionID = transactionID;
+        this.student = student;
+        this.amount = amount;
+        this.type = type;
+        this.semester = semester;
+        this.date = date;
+    }
+
+    // Getters (essential for FinancialReconciliationJPanel's JTable and summaries)
+    public Student getStudent() { return student; }
+    public double getAmount() { return amount; }
+    public String getType() { return type; }
+    public String getSemester() { return semester; }
+    public int getStudentId() { return student.getUNID(); }
+    public String getStudentName() { return student.getName(); }
 }
