@@ -32,7 +32,6 @@
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" pref="136" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="lblUNID" max="32767" attributes="0"/>
                           <Component id="lblName" max="32767" attributes="0"/>
                           <Component id="lblRole" max="32767" attributes="0"/>
                           <Component id="lblDepartment" max="32767" attributes="0"/>
@@ -42,13 +41,12 @@
                       </Group>
                       <EmptySpace min="-2" pref="121" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="txtUNID" max="32767" attributes="0"/>
                           <Component id="txtName" max="32767" attributes="0"/>
-                          <Component id="txtRole" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtDepartment" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtEmail" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtContactNumber" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtAcademicStatus" alignment="0" pref="180" max="32767" attributes="0"/>
+                          <Component id="comboxRole" alignment="0" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
@@ -63,12 +61,7 @@
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="lblUNID" min="-2" max="-2" attributes="0"/>
-                  <Component id="txtUNID" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="46" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="lblName" min="-2" max="-2" attributes="0"/>
                   <Component id="txtName" min="-2" max="-2" attributes="0"/>
@@ -76,9 +69,9 @@
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="lblRole" min="-2" max="-2" attributes="0"/>
-                  <Component id="txtRole" min="-2" max="-2" attributes="0"/>
+                  <Component id="comboxRole" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="lblDepartment" min="-2" max="-2" attributes="0"/>
                   <Component id="txtDepartment" min="-2" max="-2" attributes="0"/>
@@ -106,11 +99,6 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="javax.swing.JLabel" name="lblUNID">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="UNID"/>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JLabel" name="lblName">
       <Properties>
         <Property name="text" type="java.lang.String" value="Name"/>
@@ -146,11 +134,7 @@
         <Property name="text" type="java.lang.String" value="Register New Person"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JTextField" name="txtUNID">
-    </Component>
     <Component class="javax.swing.JTextField" name="txtName">
-    </Component>
-    <Component class="javax.swing.JTextField" name="txtRole">
     </Component>
     <Component class="javax.swing.JTextField" name="txtDepartment">
     </Component>
@@ -159,6 +143,20 @@
     <Component class="javax.swing.JTextField" name="txtContactNumber">
     </Component>
     <Component class="javax.swing.JTextField" name="txtAcademicStatus">
+    </Component>
+    <Component class="javax.swing.JComboBox" name="comboxRole">
+      <Properties>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+          <StringArray count="3">
+            <StringItem index="0" value=" "/>
+            <StringItem index="1" value=" "/>
+            <StringItem index="2" value=" "/>
+          </StringArray>
+        </Property>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+      </AuxValues>
     </Component>
   </SubComponents>
 </Form>
