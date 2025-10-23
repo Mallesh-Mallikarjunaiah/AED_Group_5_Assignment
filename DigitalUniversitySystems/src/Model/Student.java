@@ -8,8 +8,7 @@ package Model;
  *
  * @author gagan
  */
-public class Student extends Person {
-    
+public class Student extends Person { 
     // Attributes specific to the Student role
     private double creditsCompleted;
     private double overallGPA;
@@ -23,8 +22,8 @@ public class Student extends Person {
         this.creditsCompleted = creditsCompleted;
         this.overallGPA = 0.0;
         this.termGPA = 0.0;
-        this.academicStanding = "Good Standing";
-        this.tuitionBalance = 0.0;
+        this.academicStanding = "Good Standing"; 
+        this.tuitionBalance = 0.0; 
     }
 
     // --- Getters ---
@@ -74,7 +73,7 @@ public class Student extends Person {
     public void setTuitionBalance(double tuitionBalance) {
         this.tuitionBalance = tuitionBalance;
     }
-    
+   
     // Override toString for easy display in UI components (e.g., JComboBoxes)
     @Override
     public String toString() {
