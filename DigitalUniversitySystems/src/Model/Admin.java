@@ -9,5 +9,6 @@ package Model;
  * @author MALLESH
  */
 public class Admin {
+    
    
 }

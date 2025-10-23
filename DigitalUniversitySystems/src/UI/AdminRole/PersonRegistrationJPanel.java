@@ -26,7 +26,6 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        lblUNID = new javax.swing.JLabel();
         lblName = new javax.swing.JLabel();
         lblRole = new javax.swing.JLabel();
         lblDepartment = new javax.swing.JLabel();
@@ -34,19 +33,16 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
         lblContactNumber = new javax.swing.JLabel();
         lblAcademicStatus = new javax.swing.JLabel();
         btnRegister = new javax.swing.JButton();
-        txtUNID = new javax.swing.JTextField();
         txtName = new javax.swing.JTextField();
-        txtRole = new javax.swing.JTextField();
         txtDepartment = new javax.swing.JTextField();
         txtEmail = new javax.swing.JTextField();
         txtContactNumber = new javax.swing.JTextField();
         txtAcademicStatus = new javax.swing.JTextField();
+        comboxRole = new javax.swing.JComboBox<>();
 
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
         setMinimumSize(new java.awt.Dimension(600, 465));
-
-        lblUNID.setText("UNID");
 
         lblName.setText("Name");
 
@@ -62,6 +58,8 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
 
         btnRegister.setText("Register New Person");
 
+        comboxRole.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { " ", " ", " " }));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -71,7 +69,6 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(136, 136, 136)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(lblUNID, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblRole, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblDepartment, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -80,13 +77,12 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
                             .addComponent(lblAcademicStatus, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE))
                         .addGap(121, 121, 121)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtUNID)
                             .addComponent(txtName)
-                            .addComponent(txtRole)
                             .addComponent(txtDepartment)
                             .addComponent(txtEmail)
                             .addComponent(txtContactNumber)
-                            .addComponent(txtAcademicStatus, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)))
+                            .addComponent(txtAcademicStatus, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
+                            .addComponent(comboxRole, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(236, 236, 236)
                         .addComponent(btnRegister)))
@@ -95,18 +91,14 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblUNID)
-                    .addComponent(txtUNID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                .addGap(46, 46, 46)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblName)
                     .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblRole)
-                    .addComponent(txtRole, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comboxRole, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblDepartment)
@@ -132,19 +124,17 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnRegister;
+    private javax.swing.JComboBox<String> comboxRole;
     private javax.swing.JLabel lblAcademicStatus;
     private javax.swing.JLabel lblContactNumber;
     private javax.swing.JLabel lblDepartment;
     private javax.swing.JLabel lblEmail;
     private javax.swing.JLabel lblName;
     private javax.swing.JLabel lblRole;
-    private javax.swing.JLabel lblUNID;
     private javax.swing.JTextField txtAcademicStatus;
     private javax.swing.JTextField txtContactNumber;
     private javax.swing.JTextField txtDepartment;
     private javax.swing.JTextField txtEmail;
     private javax.swing.JTextField txtName;
-    private javax.swing.JTextField txtRole;
-    private javax.swing.JTextField txtUNID;
     // End of variables declaration//GEN-END:variables
 }
