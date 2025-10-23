@@ -4,7 +4,8 @@
  */
 package Model.User;
 
-import static Model.Person.getUNID;
+import Model.Profile;
+
 
 /**
  *
@@ -14,9 +15,9 @@ public class UserAccount {
     
     String username;
     String password;
-    String role;
+    Profile role;
 
-    public UserAccount(String username, String password, String role) {
+    public UserAccount(String username, String password, Profile role) {
         this.username = username;
         this.password = password;
         this.role = role;
@@ -24,7 +25,7 @@ public class UserAccount {
     
     
     public boolean isMatch(String id){
-        if(String.valueOf(getUNID()).equals(id)) return true;
+        if(String.valueOf(this.role.getPerson().getUNID()).equals(id)) return true;
         else return false;
     }
     public boolean IsValidUser(String un, String pw){
@@ -50,11 +51,11 @@ public class UserAccount {
         this.password = password;
     }
 
-    public String getRole() {
+    public Profile getProfile() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setProfile(Profile role) {
         this.role = role;
     }
     
