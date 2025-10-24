@@ -26,23 +26,128 @@ public class StudentDashboardJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        splitPane = new javax.swing.JSplitPane();
+        controlPanel = new javax.swing.JPanel();
+        lblTitle = new javax.swing.JLabel();
+        btnTranscript = new javax.swing.JButton();
+        btnTuitionPayment = new javax.swing.JButton();
+        btnCourseRegistration = new javax.swing.JButton();
+        btnGraduationAudit = new javax.swing.JButton();
+        btnLogout = new javax.swing.JButton();
+        btnPersonProfile = new javax.swing.JButton();
+        workArea = new javax.swing.JPanel();
+
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
         setMinimumSize(new java.awt.Dimension(600, 465));
+
+        controlPanel.setBackground(new java.awt.Color(255, 255, 204));
+        controlPanel.setMaximumSize(new java.awt.Dimension(155, 465));
+        controlPanel.setMinimumSize(new java.awt.Dimension(155, 465));
+
+        lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        lblTitle.setText("Welcome Student");
+
+        btnTranscript.setText("Transcript");
+
+        btnTuitionPayment.setText("Tuition Payment");
+
+        btnCourseRegistration.setText("Course Registration");
+
+        btnGraduationAudit.setText("Graduation Audit");
+        btnGraduationAudit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGraduationAuditActionPerformed(evt);
+            }
+        });
+
+        btnLogout.setText("Logout");
+
+        btnPersonProfile.setText("Profile");
+
+        javax.swing.GroupLayout controlPanelLayout = new javax.swing.GroupLayout(controlPanel);
+        controlPanel.setLayout(controlPanelLayout);
+        controlPanelLayout.setHorizontalGroup(
+            controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(controlPanelLayout.createSequentialGroup()
+                .addGap(36, 36, 36)
+                .addComponent(btnLogout)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(controlPanelLayout.createSequentialGroup()
+                .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnGraduationAudit, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE)
+                    .addComponent(btnTranscript, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnTuitionPayment, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnPersonProfile, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+            .addComponent(lblTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(controlPanelLayout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(btnCourseRegistration, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+        controlPanelLayout.setVerticalGroup(
+            controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(controlPanelLayout.createSequentialGroup()
+                .addGap(33, 33, 33)
+                .addComponent(lblTitle)
+                .addGap(84, 84, 84)
+                .addComponent(btnGraduationAudit)
+                .addGap(18, 18, 18)
+                .addComponent(btnTranscript)
+                .addGap(18, 18, 18)
+                .addComponent(btnTuitionPayment)
+                .addGap(18, 18, 18)
+                .addComponent(btnPersonProfile)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 135, Short.MAX_VALUE)
+                .addComponent(btnLogout)
+                .addGap(19, 19, 19))
+            .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(controlPanelLayout.createSequentialGroup()
+                    .addGap(93, 93, 93)
+                    .addComponent(btnCourseRegistration)
+                    .addContainerGap(349, Short.MAX_VALUE)))
+        );
+
+        splitPane.setLeftComponent(controlPanel);
+
+        workArea.setBackground(new java.awt.Color(204, 255, 204));
+        workArea.setMaximumSize(new java.awt.Dimension(600, 465));
+        workArea.setMinimumSize(new java.awt.Dimension(600, 465));
+        workArea.setPreferredSize(new java.awt.Dimension(600, 465));
+        workArea.setLayout(new java.awt.CardLayout());
+        splitPane.setRightComponent(workArea);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 600, Short.MAX_VALUE)
+            .addComponent(splitPane, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 600, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 465, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(splitPane))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnGraduationAuditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGraduationAuditActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnGraduationAuditActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCourseRegistration;
+    private javax.swing.JButton btnGraduationAudit;
+    private javax.swing.JButton btnLogout;
+    private javax.swing.JButton btnPersonProfile;
+    private javax.swing.JButton btnTranscript;
+    private javax.swing.JButton btnTuitionPayment;
+    private javax.swing.JPanel controlPanel;
+    private javax.swing.JLabel lblTitle;
+    private javax.swing.JSplitPane splitPane;
+    private javax.swing.JPanel workArea;
     // End of variables declaration//GEN-END:variables
 }
