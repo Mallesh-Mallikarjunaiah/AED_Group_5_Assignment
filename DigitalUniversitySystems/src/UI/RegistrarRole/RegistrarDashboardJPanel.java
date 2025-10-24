@@ -5,17 +5,16 @@
 package UI.RegistrarRole;
 
 import Model.Registrar;
-import UI.MainJFrame; 
-import Model.ProfileManagementDialog; 
+import Model.User.UserAccount;        
+import Model.User.UserAccountDirectory; 
+import UI.MainJFrame;                   
+import Model.ProfileManagementDialog;   
 import java.awt.CardLayout;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 // Import all required feature panels
-import UI.RegistrarRole.CourseOfferingJPanel;
-import UI.RegistrarRole.StudentRegistrationJPanel;
-import UI.RegistrarRole.FinancialReconciliationJPanel;
-import UI.RegistrarRole.InstitutionalReportsJPanel;
+import javax.swing.SwingUtilities;
 /**
  *
  * @author jayan
@@ -32,7 +31,7 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     private FinancialReconciliationJPanel financialReportsPanel;
     private InstitutionalReportsJPanel institutionalReportsPanel;
     
-    // Constructor must accept the MainFrame and the logged-in user object
+    // --- ORIGINAL CONSTRUCTOR (RETAINS FUNCTIONALITY) ---
     public RegistrarDashboardJPanel(MainJFrame mainFrame, Registrar registrar) {
         initComponents();
         this.mainFrame = mainFrame;
@@ -46,14 +45,26 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
         updateWelcomeLabel();
     }
     
+    // --- NEW CONSTRUCTOR TO RESOLVE LOGINPANEL ERROR ---
+    /**
+     * Constructor added to match the arguments passed by LoginPanel, 
+     * ensuring the system compiles without breaking Admin/Faculty logic.
+     */
+    public RegistrarDashboardJPanel(JPanel container, UserAccountDirectory accountDirectory, UserAccount userAccount) {
+        // NOTE: We safely cast the Profile to Registrar and retrieve MainJFrame instance
+        this((MainJFrame) SwingUtilities.getWindowAncestor(container), (Registrar) userAccount.getProfile());
+    }
+    
     private void updateWelcomeLabel() {
-         lblWelcomeTitle.setText("Welcome, " + loggedInRegistrar.getPerson().getName().split(" ")[0] + "!");
+        // Assuming Profile.getPerson() returns Person, which has getName()
+        lblWelcomeTitle.setText("Welcome, " + loggedInRegistrar.getPerson().getName().split(" ")[0] + "!");
     }
     
     // Helper method to instantiate all feature panels and add them to the CardLayout
     private void initializeWorkAreaPanels() {
         // Instantiate your feature panels (You must ensure these constructors are present)
-        // In a complex app, you would pass DataStore/Services into these panels
+        // If your feature panels required arguments, you would pass them here.
+        
         courseOfferingPanel = new CourseOfferingJPanel(); 
         studentRegistrationPanel = new StudentRegistrationJPanel();
         financialReportsPanel = new FinancialReconciliationJPanel();
@@ -215,17 +226,12 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnCourseOfferingActionPerformed
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
-        // 1. Clear the session (Assumes a SessionManager.clearSession() method)
-        // SessionManager.clearSession(); 
-        
-        // 2. Display success message
         JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
         
-        // 3. Navigate back to the Login screen on the MainFrame
         if (mainFrame != null) {
-            // This method MUST exist in MainFrame.java to fulfill the requirement
+            // mainFrame.showLoginPanel() must be implemented in MainJFrame
             mainFrame.showLoginPanel(); 
-        }                                                                              
+        }                                                                             
     }//GEN-LAST:event_btnLogoutActionPerformed
 
     private void btnStudentRegistrationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStudentRegistrationActionPerformed
@@ -244,11 +250,10 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnInstitutionalReportsActionPerformed
 
     private void btnProfileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnProfileActionPerformed
-        // TODO add your handling code here:
+        // Uses the reusable ProfileManagementDialog
         ProfileManagementDialog dialog = new ProfileManagementDialog(mainFrame, true, loggedInRegistrar.getPerson());
         dialog.setVisible(true);
         
-        // 2. After the dialog closes, refresh the welcome title if the name was updated
         updateWelcomeLabel();
     }//GEN-LAST:event_btnProfileActionPerformed
 

@@ -4,47 +4,107 @@
  */
 package UI;
 
-import Model.Department;
 import Model.ProfileEnum;
-import static Model.ProfileEnum.ADMIN;
-import static Model.ProfileEnum.FACULTY;
-import static Model.ProfileEnum.REGISTRAR;
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
 import UI.AdminRole.AdminDashboardJPanel;
 import UI.FacultyRole.FacultyDashboardJPanel;
+import UI.RegistrarRole.RegistrarDashboardJPanel;
 import java.awt.CardLayout;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-
 /**
  *
  * @author gagan
  */
 public class LoginPanel extends javax.swing.JPanel {
 
-    /**
-     * Creates new form LoginPanel
-     */
-    
     private JPanel workArea;
-
-    // --- Dashboard Panel References (for checking if instantiated) ---
     private JPanel adminDashboardPanel;
     private JPanel facultyDashboardPanel;
     private JPanel studentDashboardPanel;
-    private JPanel registrarDashboardPanel;
+    private JPanel registrarDashboardPanel; // Changed to generic JPanel for switch use
     private UserAccountDirectory accountDirectory;
     
+    // Constructor must be public LoginPanel(JPanel workArea) { ... }
     public LoginPanel(JPanel workArea) {
         initComponents();
         this.workArea = workArea;
         this.accountDirectory = new UserAccountDirectory();
+        
+        // Account Creation (remains unchanged)
         this.accountDirectory.newUserAccount("admin", "0000",
                 "admin", "pass", ProfileEnum.ADMIN,
                 null, "email@email.com");
         this.accountDirectory.newUserAccount("faculty", "1111", "faculty", "pass", ProfileEnum.FACULTY, null, "facultyemail@gmail.com");
+        this.accountDirectory.newUserAccount("registrar", "0000",
+                "registrar", "pass", ProfileEnum.REGISTRAR,
+                null, "registrar@email.com");
     }
+
+    private UserAccount authenticate(String username, String password) {
+        for(UserAccount ua: this.accountDirectory.getUserAccountList()) {
+            if (ua.getUsername().equals(username) && ua.getPassword().equals(password)) {
+                return ua;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Called by Login action. Switches the main view to the appropriate dashboard.
+     */
+     public void showDashboard(UserAccount userAccount) {
+        
+        CardLayout cardLayout = (CardLayout) workArea.getLayout();
+        String roleString = userAccount.getProfile().getRole();
+        ProfileEnum profile = ProfileEnum.fromProfile(roleString);
+        
+        // Pass the workArea JPanel itself as the container/reference
+        JPanel container = this.workArea;
+
+        switch (profile) {
+            case ADMIN:
+                if (adminDashboardPanel == null) {
+                    // Instantiation using the consistent 3-arg constructor
+                    adminDashboardPanel = new AdminDashboardJPanel(container, accountDirectory, userAccount);
+                    workArea.add(adminDashboardPanel, "AdminDashBoardPanel");
+                }
+                cardLayout.show(container, "AdminDashBoardPanel"); // Explicit card show
+                break;
+                
+            case REGISTRAR:
+                if (registrarDashboardPanel == null) {
+                    // FIX: Using the consistent 3-arg constructor signature
+                    registrarDashboardPanel = new RegistrarDashboardJPanel(container, accountDirectory, userAccount);
+                    workArea.add(registrarDashboardPanel, "RegistrarDashboardPanel");
+                }
+                cardLayout.show(container, "RegistrarDashboardPanel"); // Explicit card show
+                break;
+                
+            case FACULTY:
+                if (facultyDashboardPanel == null) {
+                    facultyDashboardPanel = new FacultyDashboardJPanel(container, accountDirectory, userAccount);
+                    workArea.add(facultyDashboardPanel, "FacultyDashboardPanel");
+                }
+                cardLayout.show(container, "FacultyDashboardPanel"); // Explicit card show
+                break;
+                
+            case STUDENT:
+                if (studentDashboardPanel == null) {
+                    // Assuming StudentDashboard also uses the consistent 3-arg constructor
+                    // studentDashboardPanel = new StudentDashboardJPanel(container, accountDirectory, userAccount);
+                    // workArea.add(studentDashboardPanel, "StudentDashboardPanel");
+                }
+                // cardLayout.show(container, "StudentDashboardPanel");
+                break;
+                
+            default:
+                JOptionPane.showMessageDialog(this, "Dashboard not implemented for role: " + roleString, "Error", JOptionPane.ERROR_MESSAGE);
+                break;
+        }
+    }           
+           
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -153,48 +213,6 @@ public class LoginPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_btnLoginActionPerformed
 
-    private UserAccount authenticate(String username, String password) {
-        for(UserAccount ua: this.accountDirectory.getUserAccountList()) {
-            if (ua.getUsername().equals(username) && ua.getPassword().equals(password)) {
-                return ua;
-            }
-        }
-        return null;
-    }
-
-
-    /**
-     * Called by Login action. Switches the main view to the appropriate dashboard.
-     */
-    public void showDashboard(UserAccount userAccount) {
-        String ua = userAccount.getProfile().getRole();
-        
-        ProfileEnum profile = ProfileEnum.fromProfile(ua); 
-        
-        switch (profile) {
-            case ADMIN:
-                adminDashboardPanel = new AdminDashboardJPanel(this, accountDirectory, userAccount);
-                workArea.add("AdminDashBoardPanel", adminDashboardPanel);
-                CardLayout cardLayout = (CardLayout) workArea.getLayout();
-                cardLayout.next(this.workArea);
-                break;
-            case REGISTRAR:
-//                if (registrarDashboardPanel == null) {
-//                    registrarDashboardPanel = new RegistrarDashboardJPanel(this, (Registrar) userAccount.getPerson());
-//                    mainContentPanel.add(registrarDashboardPanel, "REGISTRAR_DASH");
-//                }
-//                cardLayout.show(mainContentPanel, "REGISTRAR_DASH");
-                break;
-            case FACULTY: 
-                facultyDashboardPanel = new FacultyDashboardJPanel(this, accountDirectory, userAccount);
-                workArea.add("FacultyDashboardPanel", facultyDashboardPanel);
-                cardLayout = (CardLayout) workArea.getLayout();
-                cardLayout.next(this.workArea);
-                
-                break;
-            default:break;
-        }
-    }
     private void txtUsernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUsernameActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtUsernameActionPerformed
