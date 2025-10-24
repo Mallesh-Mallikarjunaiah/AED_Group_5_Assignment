@@ -3,20 +3,30 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.FacultyRole;
-
+import Model.CourseOffering;
+import Model.Faculty;
+import Model.User.UserAccount;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author talha
  */
 public class CourseManagementJPanel extends javax.swing.JPanel {
-
+    private JPanel workArea;
+    private UserAccount userAccount;
+    private Faculty faculty;
     /**
      * Creates new form CourseManagementJPanel
      */
-    public CourseManagementJPanel() {
+    public CourseManagementJPanel(JPanel workArea, UserAccount userAccount) {
+        this.workArea = workArea;
+        this.userAccount = userAccount;
+        this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
