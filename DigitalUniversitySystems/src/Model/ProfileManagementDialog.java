@@ -60,30 +60,30 @@ public class ProfileManagementDialog extends JDialog {
         
         // Registrar/Faculty Specific: Office Hours 
         // Checks if the object is Registrar OR Faculty
-        if (person instanceof Registrar || person instanceof Faculty) {
-            lblOfficeHours = new JLabel("Office Hours:");
-            txtOfficeHours = new JTextField(15);
-            formPanel.add(lblOfficeHours);
-            formPanel.add(txtOfficeHours);
-        }
-        
-        // Student Specific: Display academic status (Read-only)
-        if (person instanceof Student student) {
-            
-            // Credits Completed (Read-only)
-            lblCredits = new JLabel("Credits Completed:");
-            txtCredits = new JTextField(15);
-            txtCredits.setEditable(false); 
-            formPanel.add(lblCredits);
-            formPanel.add(txtCredits);
-
-            // Academic Standing (Read-only)
-            lblAcademicStanding = new JLabel("Academic Standing:");
-            txtAcademicStanding = new JTextField(15);
-            txtAcademicStanding.setEditable(false); 
-            formPanel.add(lblAcademicStanding);
-            formPanel.add(txtAcademicStanding);
-        }
+//        if (person instanceof Registrar || person instanceof Faculty) {
+//            lblOfficeHours = new JLabel("Office Hours:");
+//            txtOfficeHours = new JTextField(15);
+//            formPanel.add(lblOfficeHours);
+//            formPanel.add(txtOfficeHours);
+//        }
+//        
+//        // Student Specific: Display academic status (Read-only)
+//        if (person instanceof Student student) {
+//            
+//            // Credits Completed (Read-only)
+//            lblCredits = new JLabel("Credits Completed:");
+//            txtCredits = new JTextField(15);
+//            txtCredits.setEditable(false); 
+//            formPanel.add(lblCredits);
+//            formPanel.add(txtCredits);
+//
+//            // Academic Standing (Read-only)
+//            lblAcademicStanding = new JLabel("Academic Standing:");
+//            txtAcademicStanding = new JTextField(15);
+//            txtAcademicStanding.setEditable(false); 
+//            formPanel.add(lblAcademicStanding);
+//            formPanel.add(txtAcademicStanding);
+//        }
         
         // --- 3. Action Button ---
         btnUpdate = new JButton("Update Profile");
@@ -106,15 +106,15 @@ public class ProfileManagementDialog extends JDialog {
         txtID.setText(String.valueOf(person.getUNID())); 
 
         // Load specific attributes
-        if (person instanceof Registrar registrar) {
-            txtOfficeHours.setText(registrar.getOfficeHours());
-        } else if (person instanceof Faculty faculty) {
-            // Assuming Faculty has getOfficeHours() defined
-            // txtOfficeHours.setText(faculty.getOfficeHours()); 
-        } else if (person instanceof Student student) {
-            txtCredits.setText(String.valueOf(student.getCreditsCompleted()));
-            txtAcademicStanding.setText(student.getAcademicStanding());
-        }
+//        if (person instanceof Registrar registrar) {
+//            txtOfficeHours.setText(registrar.getOfficeHours());
+//        } else if (person instanceof Faculty faculty) {
+//            // Assuming Faculty has getOfficeHours() defined
+//            // txtOfficeHours.setText(faculty.getOfficeHours()); 
+//        } else if (person instanceof Student student) {
+//            txtCredits.setText(String.valueOf(student.getCreditsCompleted()));
+//            txtAcademicStanding.setText(student.getAcademicStanding());
+//        }
     }
 
     private void updateProfile(ActionEvent e) {
@@ -135,12 +135,12 @@ public class ProfileManagementDialog extends JDialog {
         person.setContactNumber(newContactNumber);
 
         // --- 3. Update Role-Specific Attributes ---
-        if (person instanceof Registrar registrar) {
-            // Responsibility: Manage own profile (office hours)
-            registrar.setOfficeHours(txtOfficeHours.getText());
-        } else if (person instanceof Faculty faculty) {
-            // faculty.setOfficeHours(txtOfficeHours.getText());
-        }
+//        if (person instanceof Registrar registrar) {
+//            // Responsibility: Manage own profile (office hours)
+//            registrar.setOfficeHours(txtOfficeHours.getText());
+//        } else if (person instanceof Faculty faculty) {
+//            // faculty.setOfficeHours(txtOfficeHours.getText());
+//        }
         // Note: Student's academic fields (GPA/Credits) are computed, not editable here.
 
         // --- 4. Confirmation ---

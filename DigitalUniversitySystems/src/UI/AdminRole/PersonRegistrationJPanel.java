@@ -6,18 +6,23 @@ package UI.AdminRole;
 
 import Model.Department;
 import Model.ProfileEnum;
+import Model.User.UserAccountDirectory;
+import javax.swing.JOptionPane;
 
 /**
  *
  * @author gagan
  */
 public class PersonRegistrationJPanel extends javax.swing.JPanel {
+    
+    private UserAccountDirectory accountDirectory;
 
     /**
      * Creates new form PersonRegistrationJPanel
      */
-    public PersonRegistrationJPanel() {
+    public PersonRegistrationJPanel(UserAccountDirectory accountDirectory) {
         initComponents();
+        this.accountDirectory = accountDirectory;
     }
 
     /**
@@ -180,7 +185,18 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
         ProfileEnum profile = ProfileEnum.valueOf(this.comboxRole.getSelectedItem().toString());
         Department dept =  Department.valueOf(this.deptComboBox.getSelectedItem().toString());
         
+        this.accountDirectory.newUserAccount(name, contactNum, un, pw, profile, dept, email);
         
+        JOptionPane.showMessageDialog(this, "Account Created Successfully");
+
+        // Reset all input fields
+        txtName.setText("");
+        txtContactNumber.setText("");
+        txtEmail.setText("");
+        txtUserName.setText("");
+        txtPassword.setText("");
+        comboxRole.setSelectedIndex(0);
+        deptComboBox.setSelectedIndex(0);
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -4,17 +4,26 @@
  */
 package UI.AdminRole;
 
+import Model.User.UserAccount;
+import Model.User.UserAccountDirectory;
+import javax.swing.JPanel;
+
 /**
  *
  * @author jayan
  */
 public class AdminDashboardJPanel extends javax.swing.JPanel {
+    
+    private UserAccountDirectory accountDirectory;
+    private UserAccount account;
 
     /**
      * Creates new form AdminDashboardJPanel
      */
-    public AdminDashboardJPanel() {
+    public AdminDashboardJPanel(JPanel workArea, UserAccountDirectory accountDirectory, UserAccount account) {
         initComponents();
+        this.accountDirectory = accountDirectory;
+        this.account = account;
     }
 
     /**

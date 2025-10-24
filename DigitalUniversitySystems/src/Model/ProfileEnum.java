@@ -4,6 +4,8 @@
  */
 package Model;
 
+import java.util.Arrays;
+
 /**
  *
  * @author gagan
@@ -22,5 +24,9 @@ public enum ProfileEnum {
         return this.profile;
     }
     
-    
+    public static ProfileEnum fromProfile(String profileString) {
+        return Arrays.stream(ProfileEnum.values())
+            .filter(profile -> profile.profile.equals(profileString))
+            .findFirst().orElse(null);
+    }
 }
