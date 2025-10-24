@@ -4,17 +4,101 @@
  */
 package UI.RegistrarRole;
 
+import Model.Student;
+import Model.FinancialRecord;
+import Model.Department; // Your Department enum
+import Model.Person;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
+import java.util.ArrayList; 
+// import Service.FinancialService; // Assuming a service class for business logic
+// import Service.DataStore; // Assuming a central repository
 /**
  *
  * @author jayan
  */
 public class FinancialReconciliationJPanel extends javax.swing.JPanel {
 
-    /**
-     * Creates new form FinancialReconciliationJPanel
-     */
+    // private FinancialService financialService; 
+    
     public FinancialReconciliationJPanel() {
         initComponents();
+        // this.financialService = new FinancialService();
+        initializeFilters();
+        resetSummaryFields();
+    }
+    
+    private void initializeFilters() {
+        // Populate Semester Dropdown
+        jComboBoxSemester.removeAllItems();
+        jComboBoxSemester.addItem("Fall 2025");
+        jComboBoxSemester.addItem("Spring 2026");
+        
+        // Populate Department Dropdown using the Enum
+        jComboBoxDepartment.removeAllItems();
+        jComboBoxDepartment.addItem("All Departments"); // Option to view aggregated data
+        for (Department dept : Department.values()) {
+            jComboBoxDepartment.addItem(dept.toString());
+        }
+    }
+    
+    private void resetSummaryFields() {
+        fieldTotalTutionCollected.setText("N/A");
+        fieldTotalUnpaidTution.setText("N/A");
+        fieldDeptRevenue.setText("N/A");
+        
+        // Clear table initially
+        DefaultTableModel model = (DefaultTableModel) tblFinancialRecon.getModel();
+        model.setRowCount(0);
+    }
+    
+    private void populateStatusTable(String semester) {
+        DefaultTableModel model = (DefaultTableModel) tblFinancialRecon.getModel();
+        model.setRowCount(0); // Clear old data
+
+        // --- MOCK LOGIC: Replace with call to FinancialService.getTuitionStatus(semester) ---
+        List<FinancialRecord> records = createMockFinancialData(semester);
+        // --- END MOCK LOGIC ---
+        
+        for (FinancialRecord record : records) {
+            Object[] row = new Object[5];
+            row[0] = record.getStudent().getPerson().getUNID();
+            row[1] = record.getStudent().getPerson().getName();
+            
+            // Assume the service provides net billed and paid amounts
+            double billed = 2000.00; // Mock Billed
+            double paid = record.getType().equals("PAID") ? record.getAmount() : 0.00; // Mock Paid
+            String status = (billed - paid) > 0 ? "UNPAID" : "PAID OFF";
+
+            row[2] = String.format("$%.2f", billed);
+            row[3] = String.format("$%.2f", paid);
+            row[4] = status;
+            model.addRow(row);
+        }
+    }
+    
+    // --- Mock Data Placeholder ---
+    private List<FinancialRecord> createMockFinancialData(String semester) {
+        List<FinancialRecord> mockList = new ArrayList<>();
+        // Assuming FinancialRecord constructor is: FinancialRecord(transactionID, student, amount, type, semester, date)
+        
+        // Need mock Student objects (replace with DataStore lookup)
+        Person p1 = new Person("Mock Student 1", "s1@uni.edu", "555-1000"); 
+        Student s1 = new Student(p1, Department.IS);
+        s1.setCreditsCompleted(8); 
+        
+        mockList.add(new FinancialRecord("TRX001", s1, 2000.00, "BILLED", semester, "2025-08-01"));
+        mockList.add(new FinancialRecord("TRX002", s1, 1500.00, "PAID", semester, "2025-08-15")); // Partially paid
+        
+        Person p2 = new Person("Mock Student 2", "s2@uni.edu", "555-2000"); 
+        Student s2 = new Student(p2, Department.CS);
+        s2.setCreditsCompleted(4); 
+        
+        mockList.add(new FinancialRecord("TRX003", s2, 1000.00, "BILLED", semester, "2025-08-01"));
+        mockList.add(new FinancialRecord("TRX004", s2, 1000.00, "PAID", semester, "2025-09-01")); // Fully paid
+
+        return mockList;
     }
 
     /**
@@ -35,6 +119,10 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
         lblTotalUnpaidTution = new javax.swing.JLabel();
         fieldTotalTutionCollected = new javax.swing.JLabel();
         fieldTotalUnpaidTution = new javax.swing.JLabel();
+        lblDepartmentFilter = new javax.swing.JLabel();
+        jComboBoxDepartment = new javax.swing.JComboBox<>();
+        lblRevenueBreakdown = new javax.swing.JLabel();
+        fieldDeptRevenue = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
@@ -65,6 +153,11 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
 
         btnGenerateReport.setBackground(new java.awt.Color(255, 204, 204));
         btnGenerateReport.setText("Generate Financial Report Summary");
+        btnGenerateReport.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnGenerateReportActionPerformed(evt);
+            }
+        });
 
         lblTotalTutionCollected.setText("Total Tution Collected:");
 
@@ -73,6 +166,14 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
         fieldTotalTutionCollected.setText("//AmountCollected");
 
         fieldTotalUnpaidTution.setText("//AmountYetUnpaid");
+
+        lblDepartmentFilter.setText("Department");
+
+        jComboBoxDepartment.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+        lblRevenueBreakdown.setText("Per-Department Revenue (Selected Dept):");
+
+        fieldDeptRevenue.setText("//RevenueBreakdown");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -89,7 +190,11 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
                                 .addGap(20, 20, 20)
                                 .addComponent(lblSemester)
                                 .addGap(18, 18, 18)
-                                .addComponent(jComboBoxSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jComboBoxSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(51, 51, 51)
+                                .addComponent(lblDepartmentFilter)
+                                .addGap(18, 18, 18)
+                                .addComponent(jComboBoxDepartment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(186, 186, 186)
                                 .addComponent(btnGenerateReport))
@@ -97,11 +202,13 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
                                 .addGap(48, 48, 48)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addComponent(lblTotalTutionCollected)
-                                    .addComponent(lblTotalUnpaidTution))
+                                    .addComponent(lblTotalUnpaidTution)
+                                    .addComponent(lblRevenueBreakdown))
                                 .addGap(32, 32, 32)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(fieldTotalTutionCollected)
-                                    .addComponent(fieldTotalUnpaidTution))))
+                                    .addComponent(fieldTotalUnpaidTution)
+                                    .addComponent(fieldDeptRevenue))))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -111,7 +218,9 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
                 .addGap(11, 11, 11)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblSemester)
-                    .addComponent(jComboBoxSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jComboBoxSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblDepartmentFilter)
+                    .addComponent(jComboBoxDepartment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 261, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -124,17 +233,63 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblTotalUnpaidTution)
                     .addComponent(fieldTotalUnpaidTution))
-                .addContainerGap(60, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblRevenueBreakdown)
+                    .addComponent(fieldDeptRevenue))
+                .addContainerGap(38, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnGenerateReportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGenerateReportActionPerformed
+        // TODO add your handling code here:
+        String semester = (String) jComboBoxSemester.getSelectedItem();
+        String department = (String) jComboBoxDepartment.getSelectedItem();
+        
+        if (semester == null) {
+             JOptionPane.showMessageDialog(this, "Please select a semester.", "Warning", JOptionPane.WARNING_MESSAGE);
+             return;
+        }
+
+        // 1. Monitor tuition payment status for all enrolled students.
+        populateStatusTable(semester);
+        
+        // 2. Generate financial reports per semester (Requires FinancialService call)
+        // Mock calculations based on dummy data:
+        double collected = 85000.00;
+        double unpaid = 15000.00;
+        double deptRevenue = 0.00;
+
+        // Apply department filter for breakdown
+        if (department != null && !department.equals("All Departments")) {
+            // NOTE: In a live app, this data would come from the service layered by department
+            deptRevenue = department.equals("IS") ? 45000.00 : 40000.00; 
+        } else {
+            // Show aggregated data if 'All Departments' is selected
+            deptRevenue = collected; 
+        }
+        
+        // Update Summary Fields
+        fieldTotalTutionCollected.setText(String.format("$%,.2f", collected));
+        fieldTotalUnpaidTution.setText(String.format("$%,.2f", unpaid));
+        
+        // Display the per-department breakdown
+        fieldDeptRevenue.setText(String.format("$%,.2f", deptRevenue));
+
+        JOptionPane.showMessageDialog(this, "Financial reports generated successfully for " + semester, "Success", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_btnGenerateReportActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnGenerateReport;
+    private javax.swing.JLabel fieldDeptRevenue;
     private javax.swing.JLabel fieldTotalTutionCollected;
     private javax.swing.JLabel fieldTotalUnpaidTution;
+    private javax.swing.JComboBox<String> jComboBoxDepartment;
     private javax.swing.JComboBox<String> jComboBoxSemester;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lblDepartmentFilter;
+    private javax.swing.JLabel lblRevenueBreakdown;
     private javax.swing.JLabel lblSemester;
     private javax.swing.JLabel lblTotalTutionCollected;
     private javax.swing.JLabel lblTotalUnpaidTution;
