@@ -31,50 +31,55 @@ public class Student extends Profile {
         this.enrolledCourses = new ArrayList<>();
         this.department = department;
     }
- 
+
     // --- Getters ---
+    
     // The previous getUNID() is now inherited from Person as getID()
+    
     public double getCreditsCompleted() {
         return creditsCompleted;
     }
- 
+
     public double getOverallGPA() {
         return overallGPA;
     }
- 
+
     public double getTermGPA() {
         return termGPA;
     }
+    
     public String getAcademicStanding() {
         return academicStanding;
     }
- 
+
     public double getTuitionBalance() {
         return tuitionBalance;
     }
- 
+
     // --- Setters ---
     // Used by EnrollmentService/GPACalculator
     public void setCreditsCompleted(double creditsCompleted) {
         this.creditsCompleted = creditsCompleted;
     }
- 
+
     public void setOverallGPA(double overallGPA) {
         this.overallGPA = overallGPA;
     }
+    
     public void setTermGPA(double termGPA) {
         this.termGPA = termGPA;
     }
- 
+
     // Used by GPACalculator logic (e.g., Academic Warning, Probation)
     public void setAcademicStanding(String academicStanding) {
         this.academicStanding = academicStanding;
     }
- 
+
     // Used by FinancialService when tuition is billed or paid
     public void setTuitionBalance(double tuitionBalance) {
         this.tuitionBalance = tuitionBalance;
     }
+   
     // Override toString for easy display in UI components (e.g., JComboBoxes)
     @Override
     public String toString() {
@@ -86,4 +91,3 @@ public class Student extends Profile {
         return "Student";
     }
 }
-    

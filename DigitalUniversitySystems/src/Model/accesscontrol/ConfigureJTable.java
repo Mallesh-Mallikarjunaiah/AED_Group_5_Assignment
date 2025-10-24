@@ -4,6 +4,12 @@
  */
 package Model.accesscontrol;
 
+import Model.Admin;
+import Model.Faculty;
+import Model.Person;
+import Model.Registrar;
+import Model.Student;
+
 /**
  *
  * @author talha

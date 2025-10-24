@@ -26,4 +26,9 @@ public class Faculty {
     }
     
     
+    // Override toString for easy display in JTables or dropdowns
+    @Override
+    public String toString() {
+        return getName() + " (" + getUNID() + ")";
+    }
 }
