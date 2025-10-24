@@ -4,26 +4,32 @@
  */
 package Model;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author gagan
  */
-public class Student extends Person { 
+public class Student extends Profile {
     // Attributes specific to the Student role
     private double creditsCompleted;
     private double overallGPA;
     private double termGPA;
     private String academicStanding;
     private double tuitionBalance;
-
+    private ArrayList<Course> enrolledCourses;
+    private Department department;
+ 
     // Constructor to initialize a Student object
-    public Student(String name, String email, String ID, double creditsCompleted) {
-        super(name, email, ID);
-        this.creditsCompleted = creditsCompleted;
+    public Student(String name, String email, String contactNumber, Department department) {
+        super();
+        this.creditsCompleted = 0;
         this.overallGPA = 0.0;
         this.termGPA = 0.0;
-        this.academicStanding = "Good Standing"; 
-        this.tuitionBalance = 0.0; 
+        this.academicStanding = "Good Standing";
+        this.tuitionBalance = 0.0;
+        this.enrolledCourses = new ArrayList<>();
+        this.department = department;
     }
 
     // --- Getters ---
@@ -78,5 +84,10 @@ public class Student extends Person {
     @Override
     public String toString() {
         return getName() + " (" + getUNID() + ")";
+    }
+
+    @Override
+    public String getRole() {
+        return "Student";
     }
 }

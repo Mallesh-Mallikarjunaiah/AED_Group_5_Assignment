@@ -6,17 +6,8 @@ package Model;
 
 /**
  *
- * @author jayan
+ * @author gagan
  */
-public class Registrar extends Profile{
-
-    public Registrar(Person p) {
-        super(p);
-    }
-
-    @Override
-    public String getRole() {
-        return "Registrar";
-    }
+public enum Department {
     
 }

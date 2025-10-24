@@ -3,26 +3,28 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package Model;
+
+import java.util.ArrayList;
+
 /**
  *
  * @author jayan
  */
-public class Faculty extends Person {
-    private String department;
+public class Faculty {
+    private ArrayList<Course> courses;
 
-    public Faculty(String name, String email, String ID, String department) {
-        super(name, email, ID);
-        this.department = department;
+    public ArrayList<Course> getCourses() {
+        return courses;
     }
 
-    // Getters and Setters
-    public String getDepartment() {
-        return department;
+    public void setCourses(ArrayList<Course> courses) {
+        this.courses = courses;
     }
 
-    public void setDepartment(String department) {
-        this.department = department;
+    public Faculty() {
+        this.courses = new ArrayList<>();
     }
+    
     
     // Override toString for easy display in JTables or dropdowns
     @Override

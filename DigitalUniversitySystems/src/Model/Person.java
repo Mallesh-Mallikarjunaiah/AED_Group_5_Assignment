@@ -17,13 +17,10 @@ public class Person {
     String contactNumber;
 
     public Person(String name,String email, String contactNumber) {
-        UNID=++count;
+        this.UNID=++count;
         this.name = name;
         this.email = email;
         this.contactNumber = contactNumber;
-        
-        
-        
     }
     
     
