@@ -21,8 +21,8 @@ public class Student extends Profile {
     private Department department;
  
     // Constructor to initialize a Student object
-    public Student(String name, String email, String contactNumber, Department department) {
-        super();
+    public Student(Person p, Department department) {
+        super(p);
         this.creditsCompleted = 0;
         this.overallGPA = 0.0;
         this.termGPA = 0.0;
@@ -83,7 +83,7 @@ public class Student extends Profile {
     // Override toString for easy display in UI components (e.g., JComboBoxes)
     @Override
     public String toString() {
-        return getName() + " (" + getUNID() + ")";
+        return this.getPerson().getName() + " (" + this.getPerson().getUNID() + ")";
     }
 
     @Override

@@ -10,6 +10,7 @@ package Model;
  */
 public abstract class Profile {
     Person person;
+    private boolean active;
      
     public Profile(Person p){
         person = p;
@@ -18,6 +19,14 @@ public abstract class Profile {
     
     
     public abstract String getRole();
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
     
     public Person getPerson(){
         return person;

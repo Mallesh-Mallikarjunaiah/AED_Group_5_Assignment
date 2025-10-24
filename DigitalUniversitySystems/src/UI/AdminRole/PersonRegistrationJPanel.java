@@ -4,6 +4,9 @@
  */
 package UI.AdminRole;
 
+import Model.Department;
+import Model.ProfileEnum;
+
 /**
  *
  * @author gagan
@@ -31,14 +34,16 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
         lblDepartment = new javax.swing.JLabel();
         lblEmail = new javax.swing.JLabel();
         lblContactNumber = new javax.swing.JLabel();
-        lblAcademicStatus = new javax.swing.JLabel();
         btnRegister = new javax.swing.JButton();
         txtName = new javax.swing.JTextField();
-        txtDepartment = new javax.swing.JTextField();
         txtEmail = new javax.swing.JTextField();
         txtContactNumber = new javax.swing.JTextField();
-        txtAcademicStatus = new javax.swing.JTextField();
         comboxRole = new javax.swing.JComboBox<>();
+        lblUserName = new javax.swing.JLabel();
+        lblPassword = new javax.swing.JLabel();
+        txtUserName = new javax.swing.JTextField();
+        txtPassword = new javax.swing.JTextField();
+        deptComboBox = new javax.swing.JComboBox<>();
 
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
@@ -54,11 +59,36 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
 
         lblContactNumber.setText("Contact Number");
 
-        lblAcademicStatus.setText("Academic Status");
-
         btnRegister.setText("Register New Person");
+        btnRegister.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegisterActionPerformed(evt);
+            }
+        });
 
-        comboxRole.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { " ", " ", " " }));
+        comboxRole.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Faculty", "Student", "Registrar" }));
+        comboxRole.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboxRoleActionPerformed(evt);
+            }
+        });
+
+        lblUserName.setText("User Name");
+
+        lblPassword.setText("Password");
+
+        txtUserName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtUserNameActionPerformed(evt);
+            }
+        });
+
+        deptComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "CS", "IS", "AI", "DS" }));
+        deptComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deptComboBoxActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -67,25 +97,28 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(236, 236, 236)
+                        .addComponent(btnRegister))
+                    .addGroup(layout.createSequentialGroup()
                         .addGap(136, 136, 136)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(lblName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblRole, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblDepartment, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblEmail, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblContactNumber, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblAcademicStatus, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(lblName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblRole, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblDepartment, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblEmail, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblContactNumber, javax.swing.GroupLayout.DEFAULT_SIZE, 92, Short.MAX_VALUE))
+                            .addComponent(lblUserName)
+                            .addComponent(lblPassword))
                         .addGap(121, 121, 121)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(txtName)
-                            .addComponent(txtDepartment)
                             .addComponent(txtEmail)
                             .addComponent(txtContactNumber)
-                            .addComponent(txtAcademicStatus, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
-                            .addComponent(comboxRole, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(236, 236, 236)
-                        .addComponent(btnRegister)))
+                            .addComponent(comboxRole, 0, 180, Short.MAX_VALUE)
+                            .addComponent(txtUserName)
+                            .addComponent(txtPassword)
+                            .addComponent(deptComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap(71, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -102,7 +135,7 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblDepartment)
-                    .addComponent(txtDepartment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(deptComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblEmail)
@@ -111,30 +144,60 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblContactNumber)
                     .addComponent(txtContactNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(25, 25, 25)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblAcademicStatus)
-                    .addComponent(txtAcademicStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(59, 59, 59)
+                    .addComponent(lblUserName)
+                    .addComponent(txtUserName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(lblPassword)
+                    .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(38, 38, 38)
                 .addComponent(btnRegister)
-                .addContainerGap(104, Short.MAX_VALUE))
+                .addContainerGap(92, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void txtUserNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUserNameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtUserNameActionPerformed
+
+    private void deptComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deptComboBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_deptComboBoxActionPerformed
+
+    private void comboxRoleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboxRoleActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_comboxRoleActionPerformed
+
+    private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
+        // TODO add your handling code here:
+        String name = this.txtName.getText();
+        String contactNum = this.txtContactNumber.getText();
+        String email = this.txtEmail.getText();
+        String un = this.txtUserName.getText();
+        String pw = this.txtPassword.getText();
+        ProfileEnum profile = ProfileEnum.valueOf(this.comboxRole.getSelectedItem().toString());
+        Department dept =  Department.valueOf(this.deptComboBox.getSelectedItem().toString());
+        
+        
+    }//GEN-LAST:event_btnRegisterActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnRegister;
     private javax.swing.JComboBox<String> comboxRole;
-    private javax.swing.JLabel lblAcademicStatus;
+    private javax.swing.JComboBox<String> deptComboBox;
     private javax.swing.JLabel lblContactNumber;
     private javax.swing.JLabel lblDepartment;
     private javax.swing.JLabel lblEmail;
     private javax.swing.JLabel lblName;
+    private javax.swing.JLabel lblPassword;
     private javax.swing.JLabel lblRole;
-    private javax.swing.JTextField txtAcademicStatus;
+    private javax.swing.JLabel lblUserName;
     private javax.swing.JTextField txtContactNumber;
-    private javax.swing.JTextField txtDepartment;
     private javax.swing.JTextField txtEmail;
     private javax.swing.JTextField txtName;
+    private javax.swing.JTextField txtPassword;
+    private javax.swing.JTextField txtUserName;
     // End of variables declaration//GEN-END:variables
 }

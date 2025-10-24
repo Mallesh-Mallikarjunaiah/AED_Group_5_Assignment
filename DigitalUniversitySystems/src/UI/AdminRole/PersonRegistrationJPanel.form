@@ -30,28 +30,32 @@
           <Group type="102" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="236" max="-2" attributes="0"/>
+                      <Component id="btnRegister" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" pref="136" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Component id="lblName" max="32767" attributes="0"/>
-                          <Component id="lblRole" max="32767" attributes="0"/>
-                          <Component id="lblDepartment" max="32767" attributes="0"/>
-                          <Component id="lblEmail" max="32767" attributes="0"/>
-                          <Component id="lblContactNumber" max="32767" attributes="0"/>
-                          <Component id="lblAcademicStatus" pref="92" max="32767" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="103" alignment="0" groupAlignment="0" max="-2" attributes="0">
+                              <Component id="lblName" max="32767" attributes="0"/>
+                              <Component id="lblRole" max="32767" attributes="0"/>
+                              <Component id="lblDepartment" max="32767" attributes="0"/>
+                              <Component id="lblEmail" max="32767" attributes="0"/>
+                              <Component id="lblContactNumber" pref="92" max="32767" attributes="0"/>
+                          </Group>
+                          <Component id="lblUserName" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="lblPassword" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" pref="121" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
                           <Component id="txtName" max="32767" attributes="0"/>
-                          <Component id="txtDepartment" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtEmail" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtContactNumber" alignment="0" max="32767" attributes="0"/>
-                          <Component id="txtAcademicStatus" alignment="0" pref="180" max="32767" attributes="0"/>
-                          <Component id="comboxRole" alignment="0" max="32767" attributes="0"/>
+                          <Component id="comboxRole" alignment="0" pref="180" max="32767" attributes="0"/>
+                          <Component id="txtUserName" alignment="0" max="32767" attributes="0"/>
+                          <Component id="txtPassword" alignment="0" max="32767" attributes="0"/>
+                          <Component id="deptComboBox" alignment="0" max="32767" attributes="0"/>
                       </Group>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="-2" pref="236" max="-2" attributes="0"/>
-                      <Component id="btnRegister" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace pref="71" max="32767" attributes="0"/>
@@ -74,9 +78,9 @@
               <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="lblDepartment" min="-2" max="-2" attributes="0"/>
-                  <Component id="txtDepartment" min="-2" max="-2" attributes="0"/>
+                  <Component id="deptComboBox" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="lblEmail" min="-2" max="-2" attributes="0"/>
                   <Component id="txtEmail" min="-2" max="-2" attributes="0"/>
@@ -86,14 +90,19 @@
                   <Component id="lblContactNumber" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="txtContactNumber" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="25" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="lblAcademicStatus" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="txtAcademicStatus" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblUserName" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtUserName" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="59" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" attributes="0">
+                  <Component id="lblPassword" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtPassword" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="38" max="-2" attributes="0"/>
               <Component id="btnRegister" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="104" max="32767" attributes="0"/>
+              <EmptySpace pref="92" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -124,36 +133,68 @@
         <Property name="text" type="java.lang.String" value="Contact Number"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="lblAcademicStatus">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Academic Status"/>
-      </Properties>
-    </Component>
     <Component class="javax.swing.JButton" name="btnRegister">
       <Properties>
         <Property name="text" type="java.lang.String" value="Register New Person"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnRegisterActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="txtName">
-    </Component>
-    <Component class="javax.swing.JTextField" name="txtDepartment">
     </Component>
     <Component class="javax.swing.JTextField" name="txtEmail">
     </Component>
     <Component class="javax.swing.JTextField" name="txtContactNumber">
     </Component>
-    <Component class="javax.swing.JTextField" name="txtAcademicStatus">
-    </Component>
     <Component class="javax.swing.JComboBox" name="comboxRole">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
           <StringArray count="3">
-            <StringItem index="0" value=" "/>
-            <StringItem index="1" value=" "/>
-            <StringItem index="2" value=" "/>
+            <StringItem index="0" value="Faculty"/>
+            <StringItem index="1" value="Student"/>
+            <StringItem index="2" value="Registrar"/>
           </StringArray>
         </Property>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="comboxRoleActionPerformed"/>
+      </Events>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblUserName">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="User Name"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblPassword">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Password"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtUserName">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtUserNameActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtPassword">
+    </Component>
+    <Component class="javax.swing.JComboBox" name="deptComboBox">
+      <Properties>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+          <StringArray count="4">
+            <StringItem index="0" value="CS"/>
+            <StringItem index="1" value="IS"/>
+            <StringItem index="2" value="AI"/>
+            <StringItem index="3" value="DS"/>
+          </StringArray>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="deptComboBoxActionPerformed"/>
+      </Events>
       <AuxValues>
         <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
       </AuxValues>
