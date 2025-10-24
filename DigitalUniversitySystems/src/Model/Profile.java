@@ -11,19 +11,20 @@ package Model;
 public abstract class Profile {
     Person person;
      
-     public Profile(Person p){
+    public Profile(Person p){
         person = p;
-        
     }
     
-     public abstract String getRole();
+    
+    
+    public abstract String getRole();
     
     public Person getPerson(){
         return person;
     }
      
 
-        public boolean isMatch(String id) {
+    public boolean isMatchId(String id) {
         if (String.valueOf(person.getUNID()).equals(id)) {
             return true;
         }
