@@ -4,19 +4,122 @@
  */
 package UI.RegistrarRole;
 
+import Model.CourseOffering;
+import Model.Faculty;
+import Model.Course; 
+import Model.Person;      
+import Model.Department;  // <--- REQUIRED IMPORT
+import javax.swing.table.DefaultTableModel;
+import java.util.List;
+import java.util.ArrayList; 
+import javax.swing.JOptionPane;
 /**
  *
  * @author jayan
  */
 public class CourseOfferingJPanel extends javax.swing.JPanel {
 
-    /**
-     * Creates new form CourseOfferingJPanel
-     */
+    private CourseOffering selectedOffering;
+    
     public CourseOfferingJPanel() {
         initComponents();
+        // Attaching listener after initComponents to prevent firing during setup
+        jComboBoxSemester.addActionListener(this::jComboBoxSemesterActionPerformed); 
+        populateSemesterDropdown();
+        setEditMode(false);
+    }
+    
+    private void setEditMode(boolean enable) {
+        // ... (existing setEditMode code remains unchanged) ...
+        txtCourseID.setEditable(false); 
+        txtCourseName.setEditable(false);
+        txtFaculty.setEditable(enable);
+        txtEnrollmentCapacity.setEditable(enable);
+        txtRoomTime.setEditable(enable);
+        btnSave.setEnabled(enable);
+        btnEdit.setEnabled(!enable); 
+        btnDelete.setEnabled(true); 
     }
 
+    private void populateSemesterDropdown() {
+        jComboBoxSemester.removeAllItems();
+        jComboBoxSemester.addItem("Fall 2025");
+        jComboBoxSemester.addItem("Spring 2026");
+        
+        if (jComboBoxSemester.getItemCount() > 0) {
+             jComboBoxSemester.setSelectedIndex(0);
+        }
+    }
+
+    private void populateCourseTable(String semester) {
+        DefaultTableModel model = (DefaultTableModel) tblCourseOffering.getModel();
+        model.setRowCount(0);
+
+        List<CourseOffering> offerings = createMockOfferings(semester);
+
+        for (CourseOffering offer : offerings) {
+            Object[] row = new Object[5];
+            row[0] = offer.getCourse().getCourseID(); 
+            row[1] = offer.getCourse().getName();     
+            // Access Faculty Name via the Profile/Person structure
+            row[2] = offer.getFaculty().getPerson().getName(); 
+            row[3] = offer.getCapacity();             
+            row[4] = offer.getSchedule();             
+            model.addRow(row);
+        }
+        setEditMode(false);
+        clearFields();
+    }
+    
+    private void clearFields() {
+        txtCourseID.setText("");
+        txtCourseName.setText("");
+        txtFaculty.setText("");
+        txtEnrollmentCapacity.setText("");
+        txtRoomTime.setText("");
+        selectedOffering = null;
+    }
+    
+    private void displaySelectedCourseDetails() {
+        int selectedRow = tblCourseOffering.getSelectedRow();
+        if (selectedRow < 0) return;
+
+        DefaultTableModel model = (DefaultTableModel) tblCourseOffering.getModel();
+        
+        txtCourseID.setText(model.getValueAt(selectedRow, 0).toString());
+        txtCourseName.setText(model.getValueAt(selectedRow, 1).toString());
+        txtFaculty.setText(model.getValueAt(selectedRow, 2).toString());
+        txtEnrollmentCapacity.setText(model.getValueAt(selectedRow, 3).toString());
+        txtRoomTime.setText(model.getValueAt(selectedRow, 4).toString());
+        
+        setEditMode(false); 
+    }
+
+    // --- MOCK DATA FUNCTION (FIXED) ---
+    private List<CourseOffering> createMockOfferings(String semester) {
+        List<CourseOffering> mockList = new ArrayList<>();
+        
+        // --- FIX: Use the ENUM Constants directly instead of calling new Department() ---
+        Department deptIS = Department.IS;
+        Department deptCS = Department.CS;
+
+        if (semester != null && semester.equals("Fall 2025")) {
+            // Course 1: INFO 5100
+            Course c1 = new Course("INFO 5100", "App Engineering", 4);
+            Person p1 = new Person("Dr. Smith", "s@uni.edu", "555-1000"); 
+            Faculty f1 = new Faculty(p1, deptIS); // Correct Faculty constructor usage
+            mockList.add(new CourseOffering(c1, "Fall 2025", f1, 40, "MW 2:00 PM"));
+            
+            // Course 2: CS 5010
+            Course c2 = new Course("CS 5010", "Algorithms", 4);
+            Person p2 = new Person("Dr. Jones", "j@uni.edu", "555-2000");
+            Faculty f2 = new Faculty(p2, deptCS); // Correct Faculty constructor usage
+            mockList.add(new CourseOffering(c2, "Fall 2025", f2, 30, "TTh 10:00 AM"));
+        }
+        return mockList;
+    }
+
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -39,6 +142,10 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
         txtCourseName = new javax.swing.JTextField();
         btnSave = new javax.swing.JButton();
         btnEdit = new javax.swing.JButton();
+        lblEnrollmentCapacity = new javax.swing.JLabel();
+        txtEnrollmentCapacity = new javax.swing.JTextField();
+        lblRoomTime = new javax.swing.JLabel();
+        txtRoomTime = new javax.swing.JTextField();
 
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
@@ -59,11 +166,11 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Course ID", "Course Name", "Faculty"
+                "Course ID", "Course Name", "Faculty", "Enrollment Capacity", "Room/Time"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false
+                false, false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -74,6 +181,11 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
 
         btnDelete.setBackground(new java.awt.Color(255, 204, 204));
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         lblCourseID.setText("Course ID");
 
@@ -97,6 +209,21 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
 
         btnEdit.setBackground(new java.awt.Color(255, 204, 204));
         btnEdit.setText("Edit");
+        btnEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditActionPerformed(evt);
+            }
+        });
+
+        lblEnrollmentCapacity.setText("Enrollment Capacity");
+
+        txtEnrollmentCapacity.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtEnrollmentCapacityActionPerformed(evt);
+            }
+        });
+
+        lblRoomTime.setText("Room/Time");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -114,30 +241,30 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 565, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(18, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
-                .addGap(32, 32, 32)
+                .addGap(31, 31, 31)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(lblRoomTime)
+                    .addComponent(lblEnrollmentCapacity)
+                    .addComponent(lblFaculty)
+                    .addComponent(lblCourseID)
+                    .addComponent(lblCourseName)
+                    .addComponent(btnEdit))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnEdit)
-                        .addGap(32, 32, 32)
-                        .addComponent(btnSave)
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addComponent(txtCourseID, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnDelete)
+                        .addGap(28, 28, 28))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(lblFaculty)
-                            .addComponent(lblCourseID)
-                            .addComponent(lblCourseName))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(txtCourseID, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(btnDelete)
-                                .addGap(28, 28, 28))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(txtFaculty, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(txtCourseName, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
+                            .addComponent(btnSave)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txtFaculty, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtCourseName, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtEnrollmentCapacity, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtRoomTime, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -157,24 +284,36 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(lblCourseID)
                             .addComponent(txtCourseID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblCourseName)
-                    .addComponent(txtCourseName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(9, 9, 9)
+                    .addComponent(txtCourseName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblCourseName))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblFaculty)
-                    .addComponent(txtFaculty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
+                    .addComponent(txtFaculty, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblFaculty))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnSave)
-                    .addComponent(btnEdit))
-                .addContainerGap(79, Short.MAX_VALUE))
+                    .addComponent(txtEnrollmentCapacity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblEnrollmentCapacity))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtRoomTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblRoomTime))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnEdit)
+                    .addComponent(btnSave))
+                .addGap(23, 23, 23))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void jComboBoxSemesterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxSemesterActionPerformed
         // TODO add your handling code here:
+        String selectedSemester = (String) jComboBoxSemester.getSelectedItem();
+        if (selectedSemester != null) {
+            populateCourseTable(selectedSemester);
+        }
     }//GEN-LAST:event_jComboBoxSemesterActionPerformed
 
     private void txtCourseNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCourseNameActionPerformed
@@ -183,7 +322,86 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         // TODO add your handling code here:
+        String semester = (String) jComboBoxSemester.getSelectedItem();
+        String courseID = txtCourseID.getText();
+        String courseName = txtCourseName.getText(); // Though read-only, check for consistency
+        String facultyName = txtFaculty.getText();
+        String capacityStr = txtEnrollmentCapacity.getText();
+        String roomTime = txtRoomTime.getText();
+
+        // --- 1. Validation (CRUCIAL: Null and format checks) ---
+        if (courseID.isEmpty() || courseName.isEmpty() || facultyName.isEmpty() || capacityStr.isEmpty() || roomTime.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Input Validation Failed: All fields must be filled.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        int capacity;
+        try {
+            capacity = Integer.parseInt(capacityStr);
+            if (capacity <= 0) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Input Validation Failed: Enrollment Capacity must be a positive number.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // --- 2. Update Logic (Assign faculty, set capacity, update schedule) ---
+        try {
+            // Placeholder: Find the full CourseOffering object and Faculty object
+            
+            // Example: courseService.updateCourseOffering(courseID, semester, facultyName, capacity, roomTime);
+            
+            // Assume success
+            JOptionPane.showMessageDialog(this, "Course offering saved successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            setEditMode(false);
+            populateCourseTable(semester);
+            clearFields();
+
+        } catch (Exception e) {
+            // Catch specific errors like "Faculty not found" or "Database write failed"
+            JOptionPane.showMessageDialog(this, "Failed to save offering: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void txtEnrollmentCapacityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtEnrollmentCapacityActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtEnrollmentCapacityActionPerformed
+
+    private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
+        // TODO add your handling code here:
+        int selectedRow = tblCourseOffering.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a course offering to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Enable editing fields
+        setEditMode(true);
+        btnEdit.setEnabled(false);
+        btnSave.setEnabled(true);
+    }//GEN-LAST:event_btnEditActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        // TODO add your handling code here:
+        int selectedRow = tblCourseOffering.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a course offering to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this course offering?", "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            String courseID = (String) tblCourseOffering.getValueAt(selectedRow, 0);
+            String semester = (String) jComboBoxSemester.getSelectedItem();
+            
+            // 1. Call Service to delete (e.g., courseService.deleteOffering(courseID, semester))
+            // Ensure this reflects the change in the central data store.
+            
+            // 2. Refresh the table
+            populateCourseTable(semester);
+            JOptionPane.showMessageDialog(this, "Course offering deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -194,11 +412,15 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblCourseID;
     private javax.swing.JLabel lblCourseName;
+    private javax.swing.JLabel lblEnrollmentCapacity;
     private javax.swing.JLabel lblFaculty;
+    private javax.swing.JLabel lblRoomTime;
     private javax.swing.JLabel lblSemester;
     private javax.swing.JTable tblCourseOffering;
     private javax.swing.JTextField txtCourseID;
     private javax.swing.JTextField txtCourseName;
+    private javax.swing.JTextField txtEnrollmentCapacity;
     private javax.swing.JTextField txtFaculty;
+    private javax.swing.JTextField txtRoomTime;
     // End of variables declaration//GEN-END:variables
 }
