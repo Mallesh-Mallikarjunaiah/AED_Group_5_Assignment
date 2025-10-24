@@ -4,17 +4,69 @@
  */
 package UI.RegistrarRole;
 
+import Model.Registrar;
+import UI.MainJFrame; 
+import Model.ProfileManagementDialog; 
+import java.awt.CardLayout;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+// Import all required feature panels
+import UI.RegistrarRole.CourseOfferingJPanel;
+import UI.RegistrarRole.StudentRegistrationJPanel;
+import UI.RegistrarRole.FinancialReconciliationJPanel;
+import UI.RegistrarRole.InstitutionalReportsJPanel;
 /**
  *
  * @author jayan
  */
 public class RegistrarDashboardJPanel extends javax.swing.JPanel {
 
-    /**
-     * Creates new form RegistrarDashboardJPanel
-     */
-    public RegistrarDashboardJPanel() {
+    private MainJFrame mainFrame;
+    private Registrar loggedInRegistrar;
+    private CardLayout workAreaLayout;
+    
+    // Feature Panels (instantiated once)
+    private CourseOfferingJPanel courseOfferingPanel;
+    private StudentRegistrationJPanel studentRegistrationPanel;
+    private FinancialReconciliationJPanel financialReportsPanel;
+    private InstitutionalReportsJPanel institutionalReportsPanel;
+    
+    // Constructor must accept the MainFrame and the logged-in user object
+    public RegistrarDashboardJPanel(MainJFrame mainFrame, Registrar registrar) {
         initComponents();
+        this.mainFrame = mainFrame;
+        this.loggedInRegistrar = registrar;
+        
+        // 1. Initialize CardLayout and Panels
+        workAreaLayout = (CardLayout) workArea.getLayout();
+        initializeWorkAreaPanels();
+        
+        // 2. Set Welcome Label Text
+        updateWelcomeLabel();
+    }
+    
+    private void updateWelcomeLabel() {
+         lblWelcomeTitle.setText("Welcome, " + loggedInRegistrar.getName().split(" ")[0] + "!");
+    }
+    
+    // Helper method to instantiate all feature panels and add them to the CardLayout
+    private void initializeWorkAreaPanels() {
+        // Instantiate your feature panels (You must ensure these constructors are present)
+        // In a complex app, you would pass DataStore/Services into these panels
+        courseOfferingPanel = new CourseOfferingJPanel(); 
+        studentRegistrationPanel = new StudentRegistrationJPanel();
+        financialReportsPanel = new FinancialReconciliationJPanel();
+        institutionalReportsPanel = new InstitutionalReportsJPanel();
+        
+        // Add panels to the CardLayout
+        workArea.add(courseOfferingPanel, "CourseOffering");
+        workArea.add(studentRegistrationPanel, "StudentRegistration");
+        workArea.add(financialReportsPanel, "FinanceReports");
+        workArea.add(institutionalReportsPanel, "InstitutionalReports");
+        
+        // Display the first panel by default
+        workAreaLayout.show(workArea, "CourseOffering");
     }
 
     /**
@@ -55,15 +107,40 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
         });
 
         btnStudentRegistration.setText("Student Registration");
+        btnStudentRegistration.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStudentRegistrationActionPerformed(evt);
+            }
+        });
 
         btnFinanceReports.setText("Finance Reports");
+        btnFinanceReports.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFinanceReportsActionPerformed(evt);
+            }
+        });
 
         btnInstitutionalReports.setText("Institutional Reports");
+        btnInstitutionalReports.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnInstitutionalReportsActionPerformed(evt);
+            }
+        });
 
         btnLogout.setBackground(new java.awt.Color(255, 204, 204));
         btnLogout.setText("Logout");
+        btnLogout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLogoutActionPerformed(evt);
+            }
+        });
 
         btnProfile.setText("Profile");
+        btnProfile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnProfileActionPerformed(evt);
+            }
+        });
 
         lblWelcomeTitle.setText("Welcome!");
 
@@ -134,7 +211,46 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
 
     private void btnCourseOfferingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCourseOfferingActionPerformed
         // TODO add your handling code here:
+        workAreaLayout.show(workArea, "CourseOffering");
     }//GEN-LAST:event_btnCourseOfferingActionPerformed
+
+    private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
+        // 1. Clear the session (Assumes a SessionManager.clearSession() method)
+        // SessionManager.clearSession(); 
+        
+        // 2. Display success message
+        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
+        
+        // 3. Navigate back to the Login screen on the MainFrame
+        if (mainFrame != null) {
+            // This method MUST exist in MainFrame.java to fulfill the requirement
+            mainFrame.showLoginPanel(); 
+        }                                                                              
+    }//GEN-LAST:event_btnLogoutActionPerformed
+
+    private void btnStudentRegistrationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStudentRegistrationActionPerformed
+        // TODO add your handling code here:
+        workAreaLayout.show(workArea, "StudentRegistration");
+    }//GEN-LAST:event_btnStudentRegistrationActionPerformed
+
+    private void btnFinanceReportsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFinanceReportsActionPerformed
+        // TODO add your handling code here:
+        workAreaLayout.show(workArea, "FinanceReports");
+    }//GEN-LAST:event_btnFinanceReportsActionPerformed
+
+    private void btnInstitutionalReportsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInstitutionalReportsActionPerformed
+        // TODO add your handling code here:
+        workAreaLayout.show(workArea, "InstitutionalReports");
+    }//GEN-LAST:event_btnInstitutionalReportsActionPerformed
+
+    private void btnProfileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnProfileActionPerformed
+        // TODO add your handling code here:
+        ProfileManagementDialog dialog = new ProfileManagementDialog(mainFrame, true, loggedInRegistrar);
+        dialog.setVisible(true);
+        
+        // 2. After the dialog closes, refresh the welcome title if the name was updated
+        updateWelcomeLabel();
+    }//GEN-LAST:event_btnProfileActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
