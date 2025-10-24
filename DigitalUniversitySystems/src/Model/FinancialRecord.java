@@ -30,6 +30,6 @@ public class FinancialRecord {
     public double getAmount() { return amount; }
     public String getType() { return type; }
     public String getSemester() { return semester; }
-    public int getStudentId() { return student.getUNID(); }
-    public String getStudentName() { return student.getName(); }
+    public int getStudentId() { return student.getPerson().getUNID(); }
+    public String getStudentName() { return student.getPerson().getName(); }
 }

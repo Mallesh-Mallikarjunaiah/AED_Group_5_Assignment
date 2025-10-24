@@ -8,17 +8,19 @@ package Model;
  *
  * @author gagan
  */
-public enum Department {
-    CS("CS"),IS("IS"),AI("AI"),DS("DS");
+public enum ProfileEnum {
+    ADMIN("Admin"), STUDENT("Student"), FACULTY("Faculty"), REGISTRAR("Registrar");
     
-    private final String department;
+    private final String profile;
     
-    Department(String department) {
-        this.department = department;
+    private ProfileEnum(String value) {
+        profile = value;
     }
 
     @Override
     public String toString() {
-        return this.department;
+        return this.profile;
     }
+    
+    
 }
