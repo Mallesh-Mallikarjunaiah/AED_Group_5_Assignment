@@ -4,17 +4,25 @@
  */
 package UI.AdminRole;
 
+import Model.User.UserAccount;
+import Model.User.UserAccountDirectory;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author gagan
  */
 public class UserAccountManagementJPanel extends javax.swing.JPanel {
+    
+    private UserAccountDirectory accountDirectory;
 
     /**
      * Creates new form UserAccountManagementJPanel
      */
-    public UserAccountManagementJPanel() {
+    public UserAccountManagementJPanel(UserAccountDirectory directory) {
         initComponents();
+        this.accountDirectory = directory;
+        this.refreshTable();
     }
 
     /**
@@ -93,6 +101,19 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void refreshTable() {
+        DefaultTableModel model = (DefaultTableModel)tblUserAccountManagement.getModel();
+        model.setRowCount(0);
+        
+        for(UserAccount ua: this.accountDirectory.getUserAccountList()) {
+            Object[] obj = new Object[4];
+            obj[0] = ua.getProfile().getPerson().getUNID();
+            obj[1] = ua;
+            obj[2] = ua.getUsername();
+            obj[3] = ua.getPassword();
+            model.addRow(obj);
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCreate;

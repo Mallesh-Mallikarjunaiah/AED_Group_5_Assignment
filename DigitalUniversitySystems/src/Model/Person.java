@@ -22,8 +22,6 @@ public class Person {
         this.email = email;
         this.contactNumber = contactNumber;
     }
-    
-    
 
     public String getName() {
         return name;
@@ -36,8 +34,6 @@ public class Person {
     public int getUNID() {
         return UNID;
     }
-    
-    
 
     public String getEmail() {
         return email;
@@ -53,6 +49,11 @@ public class Person {
 
     public void setContactNumber(String contactNumber) {
         this.contactNumber = contactNumber;
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
     
     

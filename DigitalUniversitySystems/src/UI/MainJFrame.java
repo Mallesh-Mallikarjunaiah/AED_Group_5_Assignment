@@ -6,10 +6,12 @@ package UI;
 
 import Model.Registrar; 
 import Model.Admin;
+import Model.Department;
 import Model.Faculty;
+import Model.ProfileEnum;
 import Model.Student;
 import Model.User.UserAccount;
-import Model.User.UserRole;    // Your defined Role Enum
+import Model.User.UserAccountDirectory;
 import UI.RegistrarRole.RegistrarDashboardJPanel; 
 import UI.AdminRole.AdminDashboardJPanel;
 import UI.FacultyRole.FacultyDashboardJPanel;
@@ -25,78 +27,15 @@ import javax.swing.JPanel;
  */
 public class MainJFrame extends javax.swing.JFrame {
 
-    // --- CardLayout Management ---
     private CardLayout cardLayout;
-    private JPanel mainContentPanel;
-    
-    // --- Dashboard Panel References (for checking if instantiated) ---
-    private JPanel adminDashboardPanel;
-    private JPanel facultyDashboardPanel;
-    private JPanel studentDashboardPanel;
-    private JPanel registrarDashboardPanel;
     
     // Placeholder for AuthService (Used in btnLoginActionPerformed)
     // private AuthService authService; 
     
     public MainJFrame() {
         initComponents();
-        initializeApplicationPanels();
-        this.setLocationRelativeTo(null);
+        showLoginPanel();
     }
-
-    private void initializeApplicationPanels() {
-        // jPanel1 is repurposed as the main CardLayout container
-        mainContentPanel = jPanel1; 
-        
-        cardLayout = new CardLayout();
-        mainContentPanel.setLayout(cardLayout);
-        
-        cardLayout.show(mainContentPanel, "LoginCard"); 
-    }
-
-    private UserAccount mockAuthenticate(String username, String password) {
-        // --- MOCK LOGIC for testing your CardLayout switch ---
-        // This simulates finding the user and retrieving their Person and Role objects
-        if (username.equals("reg") && password.equals("reg")) {
-            Registrar mockReg = new Registrar("Head Registrar", "r@uni.edu", 101, "M-F 9-5");
-            // Assuming UserAccount constructor is: UserAccount(String uname, String pword, Person p, UserRole role)
-            return new UserAccount(username, password, mockReg, UserRole.REGISTRAR);
-        }
-        if (username.equals("admin") && password.equals("admin")) {
-            Admin mockAdmin = new Admin("System Admin", "a@uni.edu", 1, "Admin");
-            return new UserAccount(username, password, mockAdmin, UserRole.ADMIN);
-        }
-        return null;
-    }
-
-
-    /**
-     * Called by Login action. Switches the main view to the appropriate dashboard.
-     */
-    public void showDashboard(UserAccount userAccount) {
-        
-        UserRole role = userAccount.getRole(); 
-        
-        switch (role) {
-            case ADMIN:
-                if (adminDashboardPanel == null) {
-                    // Instantiate the dashboard, passing 'this' (MainJFrame) and the Person object
-                    adminDashboardPanel = new AdminDashboardJPanel(this, (Admin) userAccount.getPerson());
-                    mainContentPanel.add(adminDashboardPanel, "ADMIN_DASH");
-                }
-                cardLayout.show(mainContentPanel, "ADMIN_DASH");
-                break;
-            // ... Logic for FACULTY and STUDENT ...
-            case REGISTRAR:
-                if (registrarDashboardPanel == null) {
-                    registrarDashboardPanel = new RegistrarDashboardJPanel(this, (Registrar) userAccount.getPerson());
-                    mainContentPanel.add(registrarDashboardPanel, "REGISTRAR_DASH");
-                }
-                cardLayout.show(mainContentPanel, "REGISTRAR_DASH");
-                break;
-        }
-    }
-
 
     /**
      * Called by all Dashboard JPanels upon Logout.
@@ -104,7 +43,10 @@ public class MainJFrame extends javax.swing.JFrame {
      */
     public void showLoginPanel() {
         // SessionManager.clearSession(); // Clear session
-        cardLayout.show(mainContentPanel, "LoginCard");
+        LoginPanel loginPanel = new LoginPanel(mainWorkArea);
+        mainWorkArea.add("LoginScreenPanel", loginPanel);
+        CardLayout cardLayout = (CardLayout) mainWorkArea.getLayout();
+        cardLayout.next(this.mainWorkArea);
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -115,109 +57,33 @@ public class MainJFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel1 = new javax.swing.JPanel();
-        lblUsername = new javax.swing.JLabel();
-        lblPassword = new javax.swing.JLabel();
-        txtUsername = new javax.swing.JTextField();
-        jPasswordField = new javax.swing.JPasswordField();
-        btnLogin = new javax.swing.JButton();
+        mainWorkArea = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 204));
         setMinimumSize(new java.awt.Dimension(755, 465));
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 204));
-
-        lblUsername.setText("Username:");
-
-        lblPassword.setText("Password:");
-
-        btnLogin.setBackground(new java.awt.Color(255, 204, 204));
-        btnLogin.setText("Login");
-        btnLogin.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnLoginActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(274, 274, 274)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(lblUsername)
-                            .addComponent(lblPassword))
-                        .addGap(26, 26, 26)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtUsername)
-                            .addComponent(jPasswordField, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(336, 336, 336)
-                        .addComponent(btnLogin)))
-                .addContainerGap(278, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(183, 183, 183)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblUsername)
-                    .addComponent(txtUsername, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jPasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblPassword))
-                .addGap(36, 36, 36)
-                .addComponent(btnLogin)
-                .addContainerGap(173, Short.MAX_VALUE))
-        );
+        mainWorkArea.setLayout(new java.awt.CardLayout());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(497, Short.MAX_VALUE)
+                .addComponent(mainWorkArea, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(258, 258, 258))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(104, 104, 104)
+                .addComponent(mainWorkArea, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(361, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
-        // TODO add your handling code here:
-        String username = txtUsername.getText();
-        String password = new String(jPasswordField.getPassword());
-        
-        // 1. Input Validation (Crucial for grading)
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Username and Password cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // 2. Authentication (REPLACE with your AuthService.authenticate method call)
-        UserAccount authenticatedUser = mockAuthenticate(username, password);
-        
-        if (authenticatedUser != null) {
-            JOptionPane.showMessageDialog(this, "Login Successful! Role: " + authenticatedUser.getRole(), "Success", JOptionPane.INFORMATION_MESSAGE);
-            
-            // 3. Call the central method to switch the view to the appropriate dashboard
-            showDashboard(authenticatedUser);
-            
-            // Clear fields after successful login
-            txtUsername.setText("");
-            jPasswordField.setText("");
-        } else {
-            // Failure
-            JOptionPane.showMessageDialog(this, "Invalid Username or Password.", "Authentication Failed", JOptionPane.ERROR_MESSAGE);
-        }
-    }//GEN-LAST:event_btnLoginActionPerformed
 
     /**
      * @param args the command line arguments
@@ -255,11 +121,6 @@ public class MainJFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnLogin;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPasswordField jPasswordField;
-    private javax.swing.JLabel lblPassword;
-    private javax.swing.JLabel lblUsername;
-    private javax.swing.JTextField txtUsername;
+    private javax.swing.JPanel mainWorkArea;
     // End of variables declaration//GEN-END:variables
 }

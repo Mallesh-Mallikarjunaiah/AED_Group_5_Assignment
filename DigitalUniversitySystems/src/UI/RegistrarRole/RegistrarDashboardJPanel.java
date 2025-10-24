@@ -47,7 +47,7 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     }
     
     private void updateWelcomeLabel() {
-         lblWelcomeTitle.setText("Welcome, " + loggedInRegistrar.getName().split(" ")[0] + "!");
+         lblWelcomeTitle.setText("Welcome, " + loggedInRegistrar.getPerson().getName().split(" ")[0] + "!");
     }
     
     // Helper method to instantiate all feature panels and add them to the CardLayout
@@ -245,7 +245,7 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
 
     private void btnProfileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnProfileActionPerformed
         // TODO add your handling code here:
-        ProfileManagementDialog dialog = new ProfileManagementDialog(mainFrame, true, loggedInRegistrar);
+        ProfileManagementDialog dialog = new ProfileManagementDialog(mainFrame, true, loggedInRegistrar.getPerson());
         dialog.setVisible(true);
         
         // 2. After the dialog closes, refresh the welcome title if the name was updated

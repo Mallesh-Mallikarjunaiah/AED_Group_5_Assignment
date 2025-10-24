@@ -4,6 +4,7 @@
  */
 package Model.User;
 
+import Model.Admin;
 import Model.Department;
 import Model.Faculty;
 import Model.Person;
@@ -26,8 +27,8 @@ public class UserAccountDirectory {
     }
 
     public UserAccount newUserAccount(String name, String contactNum, String un,
-            String pw, ProfileEnum profile, Department department) {
-        Person p = new Person(name, name, contactNum);
+            String pw, ProfileEnum profile, Department department, String email) {
+        Person p = new Person(name, email, contactNum);
         Profile newProfile = null;
         switch (profile) {
             case FACULTY:
@@ -39,8 +40,10 @@ public class UserAccountDirectory {
             case REGISTRAR:
                 newProfile = new Registrar(p);
                 break;
+            case ADMIN:
+                newProfile = new Admin(p);
         }
-        UserAccount ua = new UserAccount(name, un, newProfile);
+        UserAccount ua = new UserAccount(un, pw, newProfile);
         useraccountlist.add(ua);
         return ua;
     }
