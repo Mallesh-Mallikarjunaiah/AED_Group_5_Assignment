@@ -4,16 +4,26 @@
  */
 package UI.FacultyRole;
 
+import Model.Faculty;
+import Model.User.UserAccount;
+import javax.swing.JPanel;
+
 /**
  *
  * @author talha
  */
 public class TutionInsightsJPanel extends javax.swing.JPanel {
+    private JPanel workArea;
+    private UserAccount userAccount;
+    private Faculty faculty;
 
     /**
      * Creates new form TutionInsightsJPanel
      */
-    public TutionInsightsJPanel() {
+    public TutionInsightsJPanel(JPanel workArea, UserAccount userAccount) {
+        this.workArea = workArea;
+        this.userAccount = userAccount;
+        this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
     }
 

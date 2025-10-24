@@ -4,6 +4,7 @@
  */
 package UI;
 
+import Model.Department;
 import Model.ProfileEnum;
 import static Model.ProfileEnum.ADMIN;
 import static Model.ProfileEnum.FACULTY;
@@ -11,6 +12,7 @@ import static Model.ProfileEnum.REGISTRAR;
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
 import UI.AdminRole.AdminDashboardJPanel;
+import UI.FacultyRole.FacultyDashboardJPanel;
 import java.awt.CardLayout;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -41,6 +43,7 @@ public class LoginPanel extends javax.swing.JPanel {
         this.accountDirectory.newUserAccount("admin", "0000",
                 "admin", "pass", ProfileEnum.ADMIN,
                 null, "email@email.com");
+        this.accountDirectory.newUserAccount("faculty", "1111", "faculty", "pass", ProfileEnum.FACULTY, null, "facultyemail@gmail.com");
     }
 
     /**
@@ -182,7 +185,13 @@ public class LoginPanel extends javax.swing.JPanel {
 //                }
 //                cardLayout.show(mainContentPanel, "REGISTRAR_DASH");
                 break;
-            case FACULTY: break;
+            case FACULTY: 
+                facultyDashboardPanel = new FacultyDashboardJPanel(this, accountDirectory, userAccount);
+                workArea.add("FacultyDashboardPanel", facultyDashboardPanel);
+                cardLayout = (CardLayout) workArea.getLayout();
+                cardLayout.next(this.workArea);
+                
+                break;
             default:break;
         }
     }

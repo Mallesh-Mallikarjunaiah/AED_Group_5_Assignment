@@ -35,7 +35,7 @@
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="jSplitPane1" alignment="0" pref="465" max="32767" attributes="0"/>
+          <Component id="jSplitPane1" alignment="0" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
   </Layout>
@@ -60,11 +60,12 @@
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="btnCourseManagement" alignment="0" min="-2" pref="176" max="-2" attributes="0"/>
-                          <Component id="btnStudentManagement" alignment="0" min="-2" pref="176" max="-2" attributes="0"/>
-                          <Component id="btnProfileManagement" alignment="0" min="-2" pref="176" max="-2" attributes="0"/>
-                          <Component id="btnPerfRep" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Component id="btnCourseManagement" alignment="0" max="32767" attributes="0"/>
+                          <Component id="btnStudentManagement" alignment="0" max="32767" attributes="0"/>
+                          <Component id="btnProfileManagement" alignment="0" max="32767" attributes="0"/>
+                          <Component id="btnPerfRep" alignment="0" max="32767" attributes="0"/>
+                          <Component id="btnTutionInsights" alignment="0" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
@@ -75,7 +76,7 @@
                               <Component id="lblFacultyDashboard" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="-2" pref="46" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="51" max="-2" attributes="0"/>
                               <Component id="btnLogout" min="-2" max="-2" attributes="0"/>
                           </Group>
                       </Group>
@@ -95,9 +96,11 @@
                       <Component id="btnPerfRep" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="btnProfileManagement" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="btnTutionInsights" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="btnLogout" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="0" pref="203" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="180" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -115,16 +118,25 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Course Management"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCourseManagementActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnStudentManagement">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Student Management"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnStudentManagementActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnPerfRep">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Performance and Reporting"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnPerfRepActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnProfileManagement">
               <Properties>
@@ -138,6 +150,17 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Logout"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnLogoutActionPerformed"/>
+              </Events>
+            </Component>
+            <Component class="javax.swing.JButton" name="btnTutionInsights">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Tution Insights"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnTutionInsightsActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>
