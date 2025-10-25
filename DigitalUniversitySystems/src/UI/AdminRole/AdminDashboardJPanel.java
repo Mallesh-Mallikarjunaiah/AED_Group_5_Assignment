@@ -201,7 +201,7 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
 
     private void btnRegistrarSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarSearchActionPerformed
         // TODO add your handling code here:
-        RegistrarSearchJPanel panel = new  RegistrarSearchJPanel();
+        RegistrarSearchJPanel panel = new RegistrarSearchJPanel(accountDirectory);
         this.splitPane.setRightComponent(panel);
     }//GEN-LAST:event_btnRegistrarSearchActionPerformed
 
