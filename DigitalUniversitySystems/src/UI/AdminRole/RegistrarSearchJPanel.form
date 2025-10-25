@@ -33,29 +33,15 @@
               <EmptySpace max="-2" attributes="0"/>
           </Group>
           <Group type="102" alignment="0" attributes="0">
-              <EmptySpace min="-2" pref="192" max="-2" attributes="0"/>
-              <Component id="btnSave" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="32767" attributes="0"/>
-          </Group>
-          <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="75" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="btnView" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="91" max="32767" attributes="0"/>
-                      <Component id="btnEdit" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="88" max="-2" attributes="0"/>
-                      <Component id="btnDelete" min="-2" max="-2" attributes="0"/>
-                  </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="103" alignment="0" groupAlignment="0" max="-2" attributes="0">
                               <Component id="lblEmail" alignment="0" max="32767" attributes="0"/>
-                              <Component id="lblDepartment" alignment="0" max="32767" attributes="0"/>
                               <Component id="lblContactNumber" alignment="0" max="32767" attributes="0"/>
                               <Component id="lblAcademicStatus" alignment="0" pref="111" max="32767" attributes="0"/>
                           </Group>
-                          <Component id="lblRole" alignment="0" min="-2" pref="111" max="-2" attributes="0"/>
                           <Component id="lblName" alignment="0" min="-2" pref="111" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" pref="96" max="-2" attributes="0"/>
@@ -63,9 +49,19 @@
                           <Component id="txtEmail" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtContactNumber" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtAcademicStatus" alignment="0" max="32767" attributes="0"/>
-                          <Component id="txtDepartment" alignment="0" max="32767" attributes="0"/>
-                          <Component id="txtRole" alignment="0" max="32767" attributes="0"/>
                           <Component id="txtName" alignment="0" max="32767" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Component id="btnView" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="91" max="32767" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="btnSave" min="-2" max="-2" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Component id="btnEdit" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="88" max="-2" attributes="0"/>
+                              <Component id="btnDelete" min="-2" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
                   </Group>
               </Group>
@@ -89,34 +85,24 @@
                   <Component id="lblName" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="txtName" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="lblRole" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="txtRole" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="txtDepartment" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="lblDepartment" alignment="3" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="txtEmail" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="lblEmail" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtEmail" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblContactNumber" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtContactNumber" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblAcademicStatus" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtAcademicStatus" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="1" attributes="0">
-                  <Component id="txtContactNumber" min="-2" max="-2" attributes="0"/>
-                  <Component id="lblContactNumber" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="1" attributes="0">
-                  <Component id="txtAcademicStatus" alignment="1" min="-2" max="-2" attributes="0"/>
-                  <Component id="lblAcademicStatus" alignment="1" min="-2" max="-2" attributes="0"/>
-              </Group>
-              <EmptySpace pref="25" max="32767" attributes="0"/>
               <Component id="btnSave" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="23" max="-2" attributes="0"/>
+              <EmptySpace pref="86" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -126,11 +112,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Edit"/>
       </Properties>
-    </Component>
-    <Component class="javax.swing.JLabel" name="lblDepartment">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Department"/>
-      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnEditActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblEmail">
       <Properties>
@@ -158,14 +142,11 @@
         <Component class="javax.swing.JTable" name="tblSearch">
           <Properties>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-              <Table columnCount="7" rowCount="4">
+              <Table columnCount="4" rowCount="4">
                 <Column editable="false" title="UNID" type="java.lang.Object"/>
                 <Column editable="false" title="Name" type="java.lang.Object"/>
-                <Column editable="false" title="Role" type="java.lang.Object"/>
-                <Column editable="false" title="Department" type="java.lang.Object"/>
                 <Column editable="false" title="E-Mail" type="java.lang.Object"/>
                 <Column editable="false" title="Contact #" type="java.lang.Object"/>
-                <Column editable="false" title="Academic Status" type="java.lang.Object"/>
               </Table>
             </Property>
           </Properties>
@@ -181,25 +162,25 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="View"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnViewActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnSave">
       <Properties>
         <Property name="text" type="java.lang.String" value="Save"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnSaveActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnDelete">
       <Properties>
         <Property name="text" type="java.lang.String" value="Delete"/>
       </Properties>
-    </Component>
-    <Component class="javax.swing.JTextField" name="txtDepartment">
-    </Component>
-    <Component class="javax.swing.JLabel" name="lblRole">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Role"/>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JTextField" name="txtRole">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDeleteActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblName">
       <Properties>

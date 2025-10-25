@@ -35,6 +35,7 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
         }
         setFieldsEditable(false);
         btnSave.setEnabled(false);
+        btnEdit.setEnabled(false);
     }
 
     public StudentFacultySearchJPanel(UserAccountDirectory accountDirectory) {
@@ -258,16 +259,15 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnViewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewActionPerformed
-        // TODO add your handling code here:
         int selectedRow = tblSearch.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Please select a row to view");
             return;
         }
 
-        int unid =  Integer.parseInt(tblSearch.getValueAt(selectedRow, 0).toString());
+        int unid = Integer.parseInt(tblSearch.getValueAt(selectedRow, 0).toString());
         for (UserAccount account : accountDirectory.getUserAccountList()) {
-            if (account.getProfile().getPerson().getUNID() == (unid)) {
+            if (account.getProfile().getPerson().getUNID() == unid) {
                 selectedAccount = account;
                 break;
             }
@@ -277,30 +277,36 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
             if (selectedAccount.getProfile() instanceof Faculty) {
                 Faculty faculty = (Faculty) selectedAccount.getProfile();
                 comboxDepartment.setSelectedItem(faculty.getDepartment().toString());
-                setFieldsEditable(true);
             } else {
                 Student student = (Student) selectedAccount.getProfile();
                 comboxDepartment.setSelectedItem(student.getDepartment().toString());
-                setFieldsEditable(false);
             }
 
             txtEmail.setText(selectedAccount.getProfile().getPerson().getEmail());
             txtContactNumber.setText(selectedAccount.getProfile().getPerson().getContactNumber());
             txtAcademicStatus.setText(selectedAccount.getProfile().isActive() ? "YES" : "NO");
 
-            btnSave.setEnabled(true);
+            setFieldsEditable(false);
+
+            btnSave.setEnabled(false);
             btnView.setEnabled(false);
+            btnDelete.setEnabled(true);
+            btnEdit.setEnabled(true);
         }
     }//GEN-LAST:event_btnViewActionPerformed
 
     private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
-        // TODO add your handling code here:
         if (selectedAccount == null) {
             JOptionPane.showMessageDialog(this, "Please view a record first");
             return;
         }
+
         setFieldsEditable(true);
+
         btnSave.setEnabled(true);
+        btnView.setEnabled(false);
+        btnEdit.setEnabled(false);
+        btnDelete.setEnabled(false);
     }//GEN-LAST:event_btnEditActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
@@ -341,7 +347,6 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        // TODO add your handling code here:
         if (selectedAccount == null) {
             return;
         }
@@ -358,8 +363,11 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
         populateTable();
         clearFields();
         setFieldsEditable(false);
+
         btnSave.setEnabled(false);
-        btnView.setEnabled(true);
+        btnEdit.setEnabled(false);
+        btnDelete.setEnabled(true);
+
         selectedAccount = null;
 
         JOptionPane.showMessageDialog(this, "Record updated successfully");
