@@ -4,6 +4,7 @@
  */
 package UI;
 
+import Model.Department;
 import Model.ProfileEnum;
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
@@ -36,7 +37,7 @@ public class LoginPanel extends javax.swing.JPanel {
         this.accountDirectory.newUserAccount("admin", "0000",
                 "admin", "pass", ProfileEnum.ADMIN,
                 null, "email@email.com");
-        this.accountDirectory.newUserAccount("faculty", "1111", "faculty", "pass", ProfileEnum.FACULTY, null, "facultyemail@gmail.com");
+        this.accountDirectory.newUserAccount("faculty", "1111", "faculty", "pass", ProfileEnum.FACULTY, Department.DS, "facultyemail@gmail.com");
         this.accountDirectory.newUserAccount("registrar", "0000",
                 "registrar", "pass", ProfileEnum.REGISTRAR,
                 null, "registrar@email.com");
@@ -65,14 +66,10 @@ public class LoginPanel extends javax.swing.JPanel {
 
         switch (profile) {
             case ADMIN:
-                if (adminDashboardPanel == null) {
-                    // Instantiation using the consistent 3-arg constructor
-                    adminDashboardPanel = new AdminDashboardJPanel(container, accountDirectory, userAccount);
-                    workArea.add(adminDashboardPanel, "AdminDashBoardPanel");
-                }
+                adminDashboardPanel = new AdminDashboardJPanel(container, accountDirectory, userAccount);
+                workArea.add(adminDashboardPanel, "AdminDashBoardPanel");
                 cardLayout.show(container, "AdminDashBoardPanel"); // Explicit card show
                 break;
-                
             case REGISTRAR:
                 if (registrarDashboardPanel == null) {
                     // FIX: Using the consistent 3-arg constructor signature

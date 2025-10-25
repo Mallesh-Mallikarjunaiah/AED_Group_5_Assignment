@@ -61,8 +61,7 @@ public class UserAccount {
     
     @Override
     public String toString(){
-            
-        return getUsername();
+        return this.getProfile().getPerson().getName();
     }
     
 }
