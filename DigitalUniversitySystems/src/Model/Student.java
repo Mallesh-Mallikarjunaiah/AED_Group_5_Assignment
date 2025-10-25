@@ -90,4 +90,14 @@ public class Student extends Profile {
     public String getRole() {
         return "Student";
     }
+
+    public ArrayList<Course> getEnrolledCourses() {
+        return enrolledCourses;
+    }
+
+    public Department getDepartment() {
+        return department;
+    }
+    
+    
 }
