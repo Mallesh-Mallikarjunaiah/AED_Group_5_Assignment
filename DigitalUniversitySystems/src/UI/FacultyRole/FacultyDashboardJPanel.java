@@ -3,11 +3,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.FacultyRole;
+import Model.Faculty;
+import Model.ProfileManagementDialog;
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
 import java.awt.CardLayout;
 import javax.swing.JPanel;
 import UI.LoginPanel;
+import UI.MainJFrame;
+import javax.swing.SwingUtilities;
 /**
  *
  * @author jayan
@@ -16,6 +20,7 @@ public class FacultyDashboardJPanel extends javax.swing.JPanel {
     private JPanel mainWorkArea;  // reference to MainFrame work area
     private UserAccountDirectory accountDirectory;
     private UserAccount userAccount;
+    private Faculty loggedInFaculty;
     /**
      * Creates new form FacultyDashboardJPanel
      */
@@ -24,7 +29,16 @@ public class FacultyDashboardJPanel extends javax.swing.JPanel {
         this.mainWorkArea = mainWorkArea;
         this.accountDirectory = accountDirectory;
         this.userAccount = userAccount;
+        
+        if (userAccount.getProfile() instanceof Faculty) {
+            this.loggedInFaculty = (Faculty) userAccount.getProfile();
+        } else {
+        System.out.println("Warning: Logged-in user is not a Faculty profile.");
+        this.loggedInFaculty = null;
     }
+    
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -159,7 +173,9 @@ public class FacultyDashboardJPanel extends javax.swing.JPanel {
 
     private void btnProfileManagementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnProfileManagementActionPerformed
         // TODO add your handling code here:
-
+        MainJFrame parentFrame = (MainJFrame) SwingUtilities.getWindowAncestor(this);
+        ProfileManagementDialog dialog = new ProfileManagementDialog(parentFrame, true, loggedInFaculty.getPerson());
+        dialog.setVisible(true);
     }//GEN-LAST:event_btnProfileManagementActionPerformed
 
     private void btnCourseManagementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCourseManagementActionPerformed
@@ -188,7 +204,11 @@ public class FacultyDashboardJPanel extends javax.swing.JPanel {
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
-
+        mainWorkArea.removeAll();
+        LoginPanel loginPanel = new LoginPanel(mainWorkArea);
+        mainWorkArea.add("LoginPanel", loginPanel);
+        CardLayout layout = (CardLayout) mainWorkArea.getLayout();
+        layout.next(mainWorkArea);
     }//GEN-LAST:event_btnLogoutActionPerformed
 
     private void btnTutionInsightsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTutionInsightsActionPerformed

@@ -105,6 +105,7 @@ public class ProfileManagementDialog extends JDialog {
         // CORRECTED: Use getUNID() as defined in your Person.java
         txtID.setText(String.valueOf(person.getUNID())); 
 
+        
         // Load specific attributes
 //        if (person instanceof Registrar registrar) {
 //            txtOfficeHours.setText(registrar.getOfficeHours());
