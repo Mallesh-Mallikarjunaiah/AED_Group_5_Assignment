@@ -6,6 +6,10 @@ package UI.AdminRole;
 
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
+import Model.Person;
+import Model.ProfileManagementDialog;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import java.awt.CardLayout;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -207,12 +211,25 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
 
     private void btnAnalyticsDashboardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAnalyticsDashboardActionPerformed
         // TODO add your handling code here:
-        AnalyticsDashboardJPanel panel = new AnalyticsDashboardJPanel();
+        AnalyticsDashboardJPanel panel = new AnalyticsDashboardJPanel(accountDirectory);
         this.splitPane.setRightComponent(panel);
     }//GEN-LAST:event_btnAnalyticsDashboardActionPerformed
 
     private void btnPersonProfileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPersonProfileActionPerformed
-        // TODO add your handling code here:
+        // Open ProfileManagementDialog for the currently logged-in user's profile
+        if (this.account == null || this.account.getProfile() == null) {
+            JOptionPane.showMessageDialog(this, "No user account available to edit profile.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Person personToEdit = this.account.getProfile().getPerson();
+
+        java.awt.Window win = SwingUtilities.getWindowAncestor(this);
+        JFrame parentFrame = null;
+        if (win instanceof JFrame) parentFrame = (JFrame) win;
+
+        ProfileManagementDialog dialog = new ProfileManagementDialog(parentFrame, true, personToEdit);
+        dialog.setVisible(true);
     }//GEN-LAST:event_btnPersonProfileActionPerformed
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
