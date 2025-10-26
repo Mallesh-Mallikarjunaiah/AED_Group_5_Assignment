@@ -4,15 +4,9 @@
  */
 package Model;
 
-import Model.Person;
-import Model.Registrar;
-import Model.Faculty;
-import Model.Student;
-import Model.Admin;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 /**
  *
  * @author jayan

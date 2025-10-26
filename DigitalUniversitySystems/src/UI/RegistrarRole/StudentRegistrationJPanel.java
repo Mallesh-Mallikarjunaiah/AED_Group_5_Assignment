@@ -5,14 +5,15 @@
 package UI.RegistrarRole;
 
 import Model.Student;
-import Model.Person;
-import Model.Department;
+import Model.Enrollment; // New Import
+import Model.CourseOffering; // New Import
+import Model.EnrollmentService; // New Service
+import Model.User.UserAccount;
+import Model.User.UserAccountDirectory; // Required for Admin/User searching
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-import java.util.HashMap;
+import java.util.ArrayList; 
 /**
  *
  * @author jayan
@@ -20,65 +21,26 @@ import java.util.HashMap;
 public class StudentRegistrationJPanel extends javax.swing.JPanel {
 
     private Student currentStudent; 
-    private final HashMap<String, Student> localStudentData; // Local Mock Data Store
+    private final UserAccountDirectory accountDirectory; // For finding Student objects
+    private final EnrollmentService enrollmentService; // The core service
     
-    public StudentRegistrationJPanel() {
+    // Store the currently displayed Enrollments to easily access the model object for Drop
+    private List<Enrollment> displayedEnrollments; 
+    
+    public StudentRegistrationJPanel(UserAccountDirectory directory) {
         initComponents();
-        this.localStudentData = initializeMockData();
+        this.accountDirectory = directory;
+        this.enrollmentService = new EnrollmentService();
+        this.displayedEnrollments = new ArrayList<>();
         resetStudentDetails();
         
-        // Attaching the JTable listener for selection events
+        // ... (Table listener remains) ...
         tblStudentRegistration.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tblStudentRegistration.getSelectedRow() != -1) {
-                // Logic to enable/disable Enroll/Drop buttons based on status
                 updateEnrollDropButtons();
             }
         });
     }
-    
-    // --- Mock Data Initialization (Replaces global DataStore for local testing) ---
-    private HashMap<String, Student> initializeMockData() {
-        HashMap<String, Student> data = new HashMap<>();
-        Department deptIS = Department.IS;
-        Department deptCS = Department.CS;
-
-        // Creating pre-populated student data (as required by assignment)
-        // Student 1: Enrolled in 8 credits, Paid up
-        Person p1 = new Person("Amelia Jones", "aj@uni.edu", "555-1001");
-        Student s1 = new Student(p1, deptIS);
-        s1.setCreditsCompleted(8); 
-        data.put("Amelia Jones", s1);
-        data.put("1001", s1);
-
-        // Student 2: Enrolled in 4 credits, On academic warning
-        Person p2 = new Person("Ben Carter", "bc@uni.edu", "555-1002");
-        Student s2 = new Student(p2, deptCS);
-        s2.setCreditsCompleted(4); 
-        data.put("Ben Carter", s2);
-        data.put("1002", s2);
-
-        return data;
-    }
-
-    // Searches the local store by name or ID
-    private Student searchLocalData(String searchInput) {
-        String input = searchInput.trim();
-        
-        // Search by Name (Case-Insensitive)
-        Student student = localStudentData.keySet().stream()
-            .filter(key -> !key.matches("\\d+") && key.equalsIgnoreCase(input))
-            .findFirst()
-            .map(localStudentData::get)
-            .orElse(null);
-        
-        // If not found by name, search by ID
-        if (student == null) {
-            student = localStudentData.get(input);
-        }
-        return student;
-    }
-    // --- End Mock Data Logic ---
-    
     
     private void resetStudentDetails() {
         fieldName.setText("//Name");
@@ -89,17 +51,14 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         model.setRowCount(0);
         btnEnroll.setEnabled(false);
         btnDrop.setEnabled(false);
+        this.displayedEnrollments.clear();
     }
     
     // Updates the profile info labels and calls to populate the enrollment table
     private void displayStudent(Student student) {
         this.currentStudent = student;
-        
-        // --- FIX: Accessing Name and ID through the Person object ---
         fieldName.setText(student.getPerson().getName());
         fieldID.setText(String.valueOf(student.getPerson().getUNID()));
-        // -----------------------------------------------------------------
-        
         fieldCredits.setText(String.valueOf(student.getCreditsCompleted()));
         
         populateEnrollmentTable(student);
@@ -109,16 +68,20 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) tblStudentRegistration.getModel();
         model.setRowCount(0);
         
-        // Mock Enrollment Data based on student ID
-        List<String[]> mockEnrollments = getMockEnrollmentList(student); 
+        // --- FIX: Use the EnrollmentService to get persistent data ---
+        this.displayedEnrollments = enrollmentService.getEnrollmentsByStudent(student);
 
-        for (String[] enrollment : mockEnrollments) {
-            model.addRow(new Object[]{enrollment[0], enrollment[1], enrollment[2]});
+        for (Enrollment enrollment : displayedEnrollments) {
+            CourseOffering offer = enrollment.getCourseOffering();
+            model.addRow(new Object[]{
+                offer.getCourse().getCourseID(), 
+                offer.getCourse().getName(), 
+                enrollment.isActive() ? "Enrolled" : "Dropped"
+            });
         }
         updateEnrollDropButtons();
     }
     
-    // Logic to determine if Enroll/Drop buttons should be enabled
     private void updateEnrollDropButtons() {
         int selectedRow = tblStudentRegistration.getSelectedRow();
         if (currentStudent == null || selectedRow < 0) {
@@ -136,21 +99,6 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         btnDrop.setEnabled(status.equals("Enrolled"));
     }
     
-    // Mock Enrollment Data: simulates data retrieved from EnrollmentService
-    private List<String[]> getMockEnrollmentList(Student student) {
-        List<String[]> mockList = new ArrayList<>();
-        
-        if (student.getPerson().getUNID() == 1001) { // Amelia Jones
-            mockList.add(new String[]{"INFO 5100", "App Engineering", "Enrolled"});
-            mockList.add(new String[]{"CS 5010", "Algorithms", "Enrolled"});
-            mockList.add(new String[]{"MGT 6500", "Finance", "Available"});
-        } else { // Default or Ben Carter
-            mockList.add(new String[]{"CS 5010", "Algorithms", "Enrolled"});
-            mockList.add(new String[]{"MATH 6000", "Advanced Calc", "Available"});
-            mockList.add(new String[]{"EE 5000", "Digital Circuits", "Dropped"});
-        }
-        return mockList;
-    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -302,8 +250,15 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
             return;
         }
         
-        Student foundStudent = searchLocalData(searchInput);
+        // Find the UserAccount (which holds the Student Profile)
+        // NOTE: This assumes your UserAccountDirectory has a findUserAccount method that returns the account.
+        UserAccount account = accountDirectory.findUserAccount(searchInput); 
+        Student foundStudent = null;
         
+        if (account != null && account.getProfile() instanceof Student) {
+             foundStudent = (Student) account.getProfile();
+        }
+
         if (foundStudent != null) {
             displayStudent(foundStudent);
         } else {
@@ -317,13 +272,30 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         int selectedRow = tblStudentRegistration.getSelectedRow();
         if (currentStudent == null || selectedRow < 0 || !btnEnroll.isEnabled()) return;
         
+        // In a real scenario, you'd have a second table listing available courses.
+        // For simplicity, we mock enrolling in the *selected course* (if not already enrolled).
         String courseID = (String) tblStudentRegistration.getValueAt(selectedRow, 0);
+        String semester = (String) JOptionPane.showInputDialog(this, "Enter Semester (e.g., Fall 2025):");
         
-        // 1. Call EnrollmentService.enrollStudent(currentStudent, courseID, true)
-        // The 'true' flag indicates Admin-Side override, fulfilling the requirement.
+        if (semester == null || semester.isEmpty()) return;
+
+        // 1. Find the Course Offering object from the central store
+        CourseOffering offering = enrollmentService.findCourseOffering(courseID, semester);
         
-        JOptionPane.showMessageDialog(this, "Admin-side ENROLLMENT successful for " + courseID, "Success", JOptionPane.INFORMATION_MESSAGE);
-        populateEnrollmentTable(currentStudent); // Refresh data
+        if (offering != null) {
+            // 2. Enroll the student (Admin-Side is implied true here)
+            boolean success = enrollmentService.enrollStudent(currentStudent, offering, true);
+            
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Admin-side ENROLLMENT successful for " + courseID, "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                 JOptionPane.showMessageDialog(this, "Enrollment Failed (Course Full/Load Limit Exceeded).", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+             JOptionPane.showMessageDialog(this, "Course Offering not found for " + courseID + " in " + semester, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        populateEnrollmentTable(currentStudent); // Refresh data from persistent store
     }//GEN-LAST:event_btnEnrollActionPerformed
 
     private void btnDropActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDropActionPerformed
@@ -331,15 +303,20 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         int selectedRow = tblStudentRegistration.getSelectedRow();
         if (currentStudent == null || selectedRow < 0 || !btnDrop.isEnabled()) return;
         
-        String courseID = (String) tblStudentRegistration.getValueAt(selectedRow, 0);
+        Enrollment enrollmentToDrop = displayedEnrollments.get(selectedRow); // Get the persistent object
         
-        int confirm = JOptionPane.showConfirmDialog(this, "Confirm Admin-side DROP for " + courseID + "?", "Confirm", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Confirm Admin-side DROP for " + enrollmentToDrop.getCourseOffering().getCourse().getName() + "?", "Confirm", JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            // 1. Call EnrollmentService.dropStudent(currentStudent, courseID)
+            // 1. Call EnrollmentService.dropStudent(enrollmentToDrop)
+            boolean success = enrollmentService.dropStudent(enrollmentToDrop);
             
-            JOptionPane.showMessageDialog(this, "Admin-side DROP successful for " + courseID, "Success", JOptionPane.INFORMATION_MESSAGE);
-            populateEnrollmentTable(currentStudent); // Refresh data
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Admin-side DROP successful.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                 JOptionPane.showMessageDialog(this, "Drop failed (enrollment not active).", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            populateEnrollmentTable(currentStudent); // Refresh data from persistent store
         }
     }//GEN-LAST:event_btnDropActionPerformed
 

@@ -5,16 +5,16 @@
 package UI.RegistrarRole;
 
 import Model.Registrar;
-import Model.User.UserAccount;        
-import Model.User.UserAccountDirectory; 
-import UI.MainJFrame;                   
-import Model.ProfileManagementDialog;   
+import Model.User.UserAccount;
+import Model.User.UserAccountDirectory;
+import UI.MainJFrame;
+import Model.ProfileManagementDialog;
 import java.awt.CardLayout;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities; // Added for retrieving the JFrame parent
 
 // Import all required feature panels
-import javax.swing.SwingUtilities;
 /**
  *
  * @author jayan
@@ -24,6 +24,7 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     private MainJFrame mainFrame;
     private Registrar loggedInRegistrar;
     private CardLayout workAreaLayout;
+    private UserAccountDirectory accountDirectory;
     
     // Feature Panels (instantiated once)
     private CourseOfferingJPanel courseOfferingPanel;
@@ -32,27 +33,32 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     private InstitutionalReportsJPanel institutionalReportsPanel;
     
     // --- ORIGINAL CONSTRUCTOR (RETAINS FUNCTIONALITY) ---
-    public RegistrarDashboardJPanel(MainJFrame mainFrame, Registrar registrar) {
-        initComponents();
-        this.mainFrame = mainFrame;
-        this.loggedInRegistrar = registrar;
+    public RegistrarDashboardJPanel(JPanel container, UserAccountDirectory directory, UserAccount userAccount) {
+        // 1. Store the directory immediately
+        this.accountDirectory = directory; 
         
-        // 1. Initialize CardLayout and Panels
-        workAreaLayout = (CardLayout) workArea.getLayout();
-        initializeWorkAreaPanels();
+        // 2. Call the original constructor using 'this'
+        this((MainJFrame) SwingUtilities.getWindowAncestor(container), (Registrar) userAccount.getProfile());
         
-        // 2. Set Welcome Label Text
-        updateWelcomeLabel();
+        // 3. NOW initialize the panels using the directory
+        initializeWorkAreaPanels(); 
     }
     
     // --- NEW CONSTRUCTOR TO RESOLVE LOGINPANEL ERROR ---
     /**
-     * Constructor added to match the arguments passed by LoginPanel, 
+     * Constructor added to match the inconsistent arguments (3 args) passed by LoginPanel, 
      * ensuring the system compiles without breaking Admin/Faculty logic.
      */
-    public RegistrarDashboardJPanel(JPanel container, UserAccountDirectory accountDirectory, UserAccount userAccount) {
-        // NOTE: We safely cast the Profile to Registrar and retrieve MainJFrame instance
-        this((MainJFrame) SwingUtilities.getWindowAncestor(container), (Registrar) userAccount.getProfile());
+    public RegistrarDashboardJPanel(MainJFrame mainFrame, Registrar registrar) {
+        initComponents();
+        this.mainFrame = mainFrame;
+        this.loggedInRegistrar = registrar;
+        // The directory must be retrieved or passed; we assume LoginPanel handles setup.
+        // For now, we leave accountDirectory null until we fix the calling constructor.
+        
+        workAreaLayout = (CardLayout) workArea.getLayout();
+        // initializeWorkAreaPanels(); // This call will now fail due to missing directory
+        updateWelcomeLabel();
     }
     
     private void updateWelcomeLabel() {
@@ -62,11 +68,9 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     
     // Helper method to instantiate all feature panels and add them to the CardLayout
     private void initializeWorkAreaPanels() {
-        // Instantiate your feature panels (You must ensure these constructors are present)
-        // If your feature panels required arguments, you would pass them here.
-        
+        // Instantiate feature panels (You must ensure these constructors are present)
         courseOfferingPanel = new CourseOfferingJPanel(); 
-        studentRegistrationPanel = new StudentRegistrationJPanel();
+        studentRegistrationPanel = new StudentRegistrationJPanel(this.accountDirectory);
         financialReportsPanel = new FinancialReconciliationJPanel();
         institutionalReportsPanel = new InstitutionalReportsJPanel();
         
