@@ -35,6 +35,7 @@ public class LoginPanel extends javax.swing.JPanel {
     private JPanel studentDashboardPanel;
     private JPanel registrarDashboardPanel;
     private UserAccountDirectory accountDirectory;
+
     
     public LoginPanel(JPanel workArea) {
         initComponents();
@@ -186,7 +187,7 @@ public class LoginPanel extends javax.swing.JPanel {
 //                cardLayout.show(mainContentPanel, "REGISTRAR_DASH");
                 break;
             case FACULTY: 
-                facultyDashboardPanel = new FacultyDashboardJPanel(this, accountDirectory, userAccount);
+                facultyDashboardPanel = new FacultyDashboardJPanel(workArea, accountDirectory, userAccount);
                 workArea.add("FacultyDashboardPanel", facultyDashboardPanel);
                 cardLayout = (CardLayout) workArea.getLayout();
                 cardLayout.next(this.workArea);
