@@ -211,48 +211,12 @@ public class LoginPanel extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_btnLoginActionPerformed
 
-    private UserAccount authenticate(String username, String password) {
-        for(UserAccount ua: this.accountDirectory.getUserAccountList()) {
-            if (ua.getUsername().equals(username) && ua.getPassword().equals(password)) {
-                return ua;
-            }
-        }
-        return null;
-    }
 
 
     /**
      * Called by Login action. Switches the main view to the appropriate dashboard.
      */
-    public void showDashboard(UserAccount userAccount) {
-        String ua = userAccount.getProfile().getRole();
-        
-        ProfileEnum profile = ProfileEnum.fromProfile(ua); 
-        
-        switch (profile) {
-            case ADMIN:
-                adminDashboardPanel = new AdminDashboardJPanel(this, accountDirectory, userAccount);
-                workArea.add("AdminDashBoardPanel", adminDashboardPanel);
-                CardLayout cardLayout = (CardLayout) workArea.getLayout();
-                cardLayout.next(this.workArea);
-                break;
-            case REGISTRAR:
-//                if (registrarDashboardPanel == null) {
-//                    registrarDashboardPanel = new RegistrarDashboardJPanel(this, (Registrar) userAccount.getPerson());
-//                    mainContentPanel.add(registrarDashboardPanel, "REGISTRAR_DASH");
-//                }
-//                cardLayout.show(mainContentPanel, "REGISTRAR_DASH");
-                break;
-            case FACULTY: 
-                facultyDashboardPanel = new FacultyDashboardJPanel(workArea, accountDirectory, userAccount);
-                workArea.add("FacultyDashboardPanel", facultyDashboardPanel);
-                cardLayout = (CardLayout) workArea.getLayout();
-                cardLayout.next(this.workArea);
-                
-                break;
-            default:break;
-        }
-    }
+
     private void txtUsernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUsernameActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txtUsernameActionPerformed
