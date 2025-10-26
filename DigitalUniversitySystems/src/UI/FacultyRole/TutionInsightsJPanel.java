@@ -3,11 +3,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.FacultyRole;
-
+import Model.*;
 import Model.Faculty;
 import Model.User.UserAccount;
 import javax.swing.JPanel;
-
+import java.util.*;
 /**
  *
  * @author talha
@@ -16,15 +16,105 @@ public class TutionInsightsJPanel extends javax.swing.JPanel {
     private JPanel workArea;
     private UserAccount userAccount;
     private Faculty faculty;
-
+    private Map<String, TuitionData> courseTuitionMap;
+    private static final double TUITION_PER_CREDIT = 1500.0;
     /**
      * Creates new form TutionInsightsJPanel
      */
+    private class TuitionData {
+        CourseOffering courseOffering;
+        int totalStudents;
+        double totalTuitionCollected;
+        
+        public TuitionData(CourseOffering courseOffering, int totalStudents) {
+            this.courseOffering = courseOffering;
+            this.totalStudents = totalStudents;
+            this.totalTuitionCollected = calculateTuition();
+        }
+        
+        private double calculateTuition() {
+            int credits = courseOffering.getCourse().getCredits();
+            return totalStudents * credits * TUITION_PER_CREDIT;
+        }
+    }
+    
     public TutionInsightsJPanel(JPanel workArea, UserAccount userAccount) {
         this.workArea = workArea;
         this.userAccount = userAccount;
         this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
+        initializeMockData();
+        populateCourseDropdown();
+        
+        // Add listener
+        cmbSelectCourse.addActionListener(e -> displayTuitionInsights());
+    }
+    
+    /**
+     * Initialize mock tuition data for faculty's courses
+     */
+    private void initializeMockData() {
+        courseTuitionMap = new HashMap<>();
+        
+        // Create mock courses with enrollment data
+        Course course1 = new Course("CS5010", "Program Design Paradigm", 4);
+        Course course2 = new Course("CS5800", "Algorithms", 4);
+        Course course3 = new Course("CS6220", "Data Mining", 3);
+        
+        CourseOffering offering1 = new CourseOffering(course1, "Fall 2024", faculty, 60, "Mon/Wed 2:00-3:30 PM");
+        CourseOffering offering2 = new CourseOffering(course2, "Fall 2024", faculty, 50, "Tue/Thu 10:00-11:30 AM");
+        CourseOffering offering3 = new CourseOffering(course3, "Spring 2025", faculty, 40, "Mon/Wed 6:00-7:30 PM");
+        
+        // Create tuition data with enrollment numbers
+        TuitionData tuition1 = new TuitionData(offering1, 45); // 45 students enrolled
+        TuitionData tuition2 = new TuitionData(offering2, 38); // 38 students enrolled
+        TuitionData tuition3 = new TuitionData(offering3, 35); // 35 students enrolled
+        
+        courseTuitionMap.put("CS5010 - Program Design Paradigm", tuition1);
+        courseTuitionMap.put("CS5800 - Algorithms", tuition2);
+        courseTuitionMap.put("CS6220 - Data Mining", tuition3);
+    }
+
+    /**
+     * Populate course dropdown
+     */
+    private void populateCourseDropdown() {
+        cmbSelectCourse.removeAllItems();
+        cmbSelectCourse.addItem("-- Select Course --");
+        
+        for (String courseName : courseTuitionMap.keySet()) {
+            cmbSelectCourse.addItem(courseName);
+        }
+    }
+
+    /**
+     * Display tuition insights for selected course
+     */
+    private void displayTuitionInsights() {
+        String selectedCourse = (String) cmbSelectCourse.getSelectedItem();
+        
+        if (selectedCourse == null || selectedCourse.equals("-- Select Course --")) {
+            clearFields();
+            return;
+        }
+        
+        TuitionData tuitionData = courseTuitionMap.get(selectedCourse);
+        
+        if (tuitionData != null) {
+            // Display total number of students
+            txtTotalStudents.setText(String.valueOf(tuitionData.totalStudents));
+            
+            // Display total tuition fee collected
+            txtTotalFee.setText(String.format("$%,.2f", tuitionData.totalTuitionCollected));
+        }
+    }
+
+    /**
+     * Clear all fields
+     */
+    private void clearFields() {
+        txtTotalStudents.setText("");
+        txtTotalFee.setText("");
     }
 
     /**

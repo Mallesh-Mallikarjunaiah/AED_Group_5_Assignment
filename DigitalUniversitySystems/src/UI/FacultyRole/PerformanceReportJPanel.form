@@ -46,27 +46,22 @@
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" pref="147" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="lblAvgGrade" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="lblGradeDistribution" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="lblEnrollmentCount" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="56" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="lblEnrollmentCount" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="32767" attributes="0"/>
-                              <Component id="txtEnrollmentCount" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" attributes="0">
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="lblAvgGrade" alignment="0" min="-2" max="-2" attributes="0"/>
-                                  <Component id="lblGradeDistribution" alignment="0" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <EmptySpace min="-2" pref="56" max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="0" attributes="0">
-                                  <Component id="txtGradeDistribution" min="-2" max="-2" attributes="0"/>
-                                  <Component id="txtAvgGrade" min="-2" max="-2" attributes="0"/>
-                              </Group>
+                          <Component id="txtEnrollmentCount" pref="101" max="32767" attributes="0"/>
+                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Component id="txtAvgGrade" pref="101" max="32767" attributes="0"/>
+                              <Component id="txtGradeDistribution" max="32767" attributes="0"/>
                           </Group>
                       </Group>
                   </Group>
               </Group>
-              <EmptySpace pref="236" max="32767" attributes="0"/>
+              <EmptySpace pref="199" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
