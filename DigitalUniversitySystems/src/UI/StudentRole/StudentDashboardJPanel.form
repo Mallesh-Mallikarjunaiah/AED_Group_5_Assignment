@@ -129,16 +129,25 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Transcript"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnTranscriptActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnTuitionPayment">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Tuition Payment"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnTuitionPaymentActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnCourseRegistration">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Course Registration"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCourseRegistrationActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnGraduationAudit">
               <Properties>
@@ -152,11 +161,17 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Logout"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnLogoutActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnPersonProfile">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Profile"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnPersonProfileActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>

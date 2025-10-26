@@ -15,6 +15,9 @@ public class FinancialRecord {
     private String type; // E.g., "BILLED", "PAID", "REFUND"
     private String semester;
     private String date;
+    
+    public FinancialRecord() {}
+
 
     public FinancialRecord(String transactionID, Student student, double amount, String type, String semester, String date) {
         this.transactionID = transactionID;
@@ -22,6 +25,36 @@ public class FinancialRecord {
         this.amount = amount;
         this.type = type;
         this.semester = semester;
+        this.date = date;
+    }
+    public String getTransactionID() {
+        return transactionID;
+    }
+
+    public String getDate() {
+        return date;
+    }
+     public void setTransactionID(String transactionID) {
+        this.transactionID = transactionID;
+    }
+
+    public void setStudent(Student student) {
+        this.student = student;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setSemester(String semester) {
+        this.semester = semester;
+    }
+
+    public void setDate(String date) {
         this.date = date;
     }
 
