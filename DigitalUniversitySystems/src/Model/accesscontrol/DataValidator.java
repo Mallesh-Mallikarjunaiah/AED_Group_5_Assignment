@@ -9,5 +9,16 @@ package Model.accesscontrol;
  * @author jayan
  */
 public class DataValidator {
-    
+    public static boolean isNotEmpty(String value) {
+        return value != null && !value.trim().isEmpty();
+    }
+
+    public static boolean isInteger(String value) {
+        try {
+            Integer.parseInt(value);
+            return true;
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+    }
 }

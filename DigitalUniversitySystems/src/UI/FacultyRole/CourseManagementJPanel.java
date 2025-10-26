@@ -3,13 +3,19 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.FacultyRole;
+import Model.Course;
 import Model.CourseOffering;
 import Model.Faculty;
 import Model.User.UserAccount;
+import Model.accesscontrol.DataValidator;
+import java.awt.CardLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
+import javax.swing.filechooser.FileNameExtensionFilter;
 /**
  *
  * @author talha
@@ -18,6 +24,9 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
     private JPanel workArea;
     private UserAccount userAccount;
     private Faculty faculty;
+    private List<CourseOffering> facultyCourses; // Courses assigned to this faculty
+    private CourseOffering selectedCourseOffering;
+    private String syllabusPath = null;
     /**
      * Creates new form CourseManagementJPanel
      */
@@ -26,7 +35,90 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
         this.userAccount = userAccount;
         this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
+        initializeMockData();
+        populateCourseTable();
+        
+        // Disable editing fields initially
+        setFieldsEditable(false);
+        
     }
+    /**
+     * Initialize mock course offerings for this faculty
+     * TODO: Replace with actual data from your DataStore
+     */
+    private void initializeMockData() {
+        facultyCourses = new ArrayList<>();
+        
+        // Create mock courses assigned to this faculty
+        Course course1 = new Course("CS5010", "Program Design Paradigm", 4);
+        Course course2 = new Course("CS5800", "Algorithms", 4);
+        Course course3 = new Course("CS6220", "Data Mining", 3);
+        
+        // Create course offerings for Fall 2024
+        CourseOffering offering1 = new CourseOffering(course1, "Fall 2024", faculty, 60, "Mon/Wed 2:00-3:30 PM");
+        CourseOffering offering2 = new CourseOffering(course2, "Fall 2024", faculty, 50, "Tue/Thu 10:00-11:30 AM");
+        CourseOffering offering3 = new CourseOffering(course3, "Spring 2025", faculty, 40, "Mon/Wed 6:00-7:30 PM");
+        
+        // Simulate some enrollments
+        offering1.incrementEnrolledCount();
+        offering1.incrementEnrolledCount();
+        offering1.incrementEnrolledCount();
+        offering2.incrementEnrolledCount();
+        offering2.incrementEnrolledCount();
+        
+        facultyCourses.add(offering1);
+        facultyCourses.add(offering2);
+        facultyCourses.add(offering3);
+    }
+
+    /**
+     * Populate the course table with faculty's assigned courses
+     */
+    private void populateCourseTable() {
+        DefaultTableModel model = (DefaultTableModel) tblCourses.getModel();
+        model.setRowCount(0); // Clear existing rows
+        
+        for (CourseOffering offering : facultyCourses) {
+            Course course = offering.getCourse();
+            String status = offering.getEnrolledCount() >= offering.getCapacity() ? "Full" : "Open";
+            
+            model.addRow(new Object[]{
+                course.getCourseID(),
+                course.getName(),
+                "Credits: " + course.getCredits(), // Using description field for credits
+                offering.getSchedule(),
+                offering.getCapacity(),
+                status
+            });
+        }
+    }
+
+    /**
+     * Enable or disable text fields for editing
+     */
+    private void setFieldsEditable(boolean editable) {
+        txtTitle.setEditable(editable);
+        txtDescription.setEditable(editable);
+        txtSchedule.setEditable(editable);
+        txtCapacity.setEditable(editable);
+        txtStatus.setEditable(false); // Status is always read-only
+        btnSave.setEnabled(editable);
+    }
+
+    /**
+     * Clear all text fields
+     */
+    private void clearFields() {
+        txtCourseID.setText("");
+        txtTitle.setText("");
+        txtDescription.setText("");
+        txtSchedule.setText("");
+        txtCapacity.setText("");
+        txtStatus.setText("");
+        selectedCourseOffering = null;
+    }
+   
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -95,10 +187,25 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
         lblStatus.setText("Status");
 
         btnViewEdit.setText("View/Edit");
+        btnViewEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnViewEditActionPerformed(evt);
+            }
+        });
 
         btnSave.setText("Save");
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
         btnUploadSyllabus.setText("Upload Syllabus");
+        btnUploadSyllabus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUploadSyllabusActionPerformed(evt);
+            }
+        });
 
         txtTitle.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -200,7 +307,150 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
 
     private void txtCapacityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCapacityActionPerformed
         // TODO add your handling code here:
+
     }//GEN-LAST:event_txtCapacityActionPerformed
+
+    private void btnViewEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewEditActionPerformed
+        int selectedRow = tblCourses.getSelectedRow();
+        
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, 
+                "Please select a course from the table.", 
+                "No Selection", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Get the selected course offering
+        selectedCourseOffering = facultyCourses.get(selectedRow);
+        Course course = selectedCourseOffering.getCourse();
+        
+        // Populate fields with course data
+        txtCourseID.setText(course.getCourseID());
+        txtTitle.setText(course.getName());
+        txtDescription.setText("Credits: " + course.getCredits());
+        txtSchedule.setText(selectedCourseOffering.getSchedule());
+        txtCapacity.setText(String.valueOf(selectedCourseOffering.getCapacity()));
+        
+        String status = selectedCourseOffering.getEnrolledCount() >= selectedCourseOffering.getCapacity() 
+                        ? "Full" : "Open (" + selectedCourseOffering.getEnrolledCount() + "/" 
+                        + selectedCourseOffering.getCapacity() + ")";
+        txtStatus.setText(status);
+        
+        // Enable editing (except for read-only fields)
+        setFieldsEditable(true);
+        
+        JOptionPane.showMessageDialog(this, 
+            "Course details loaded. You can now edit Schedule and Capacity.", 
+            "View/Edit Mode", 
+            JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_btnViewEditActionPerformed
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        // TODO add your handling code here:
+        if (selectedCourseOffering == null) {
+            JOptionPane.showMessageDialog(this, 
+                "No course selected. Please use View/Edit first.", 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        // Validate inputs
+        String newSchedule = txtSchedule.getText().trim();
+        String capacityStr = txtCapacity.getText().trim();
+        
+        if (newSchedule.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Schedule cannot be empty.", 
+                "Validation Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        try {
+            int newCapacity = Integer.parseInt(capacityStr);
+            
+            if (newCapacity < selectedCourseOffering.getEnrolledCount()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Capacity cannot be less than current enrollment count (" 
+                    + selectedCourseOffering.getEnrolledCount() + ").", 
+                    "Validation Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (newCapacity < 1 || newCapacity > 200) {
+                JOptionPane.showMessageDialog(this, 
+                    "Capacity must be between 1 and 200.", 
+                    "Validation Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Update the course offering
+            selectedCourseOffering.setSchedule(newSchedule);
+            selectedCourseOffering.setCapacity(newCapacity);
+            
+            // Refresh the table
+            populateCourseTable();
+            
+            // Clear fields and disable editing
+            clearFields();
+            setFieldsEditable(false);
+            
+            JOptionPane.showMessageDialog(this, 
+                "Course details updated successfully!", 
+                "Success", 
+                JOptionPane.INFORMATION_MESSAGE);
+            
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Capacity must be a valid number.", 
+                "Validation Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }   
+    }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void btnUploadSyllabusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadSyllabusActionPerformed
+        // TODO add your handling code here:
+        if (selectedCourseOffering == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Please select a course first using View/Edit.", 
+                "No Course Selected", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Create file chooser
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Select Syllabus File");
+        
+        // Set file filter for common document types
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+            "Document Files (*.pdf, *.doc, *.docx)", "pdf", "doc", "docx");
+        fileChooser.setFileFilter(filter);
+        
+        int result = fileChooser.showOpenDialog(this);
+        
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            syllabusPath = selectedFile.getAbsolutePath();
+            
+            // TODO: In a real application, you would:
+            // 1. Upload the file to a server or document management system
+            // 2. Store the file path/URL in the CourseOffering object
+            // 3. Make the syllabus accessible to enrolled students
+            
+            JOptionPane.showMessageDialog(this, 
+                "Syllabus uploaded successfully!\n" +
+                "File: " + selectedFile.getName() + "\n" +
+                "Path: " + syllabusPath + "\n\n" +
+                "Note: In a production system, this would be stored in a database.", 
+                "Upload Successful", 
+                JOptionPane.INFORMATION_MESSAGE);
+        }
+    }//GEN-LAST:event_btnUploadSyllabusActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

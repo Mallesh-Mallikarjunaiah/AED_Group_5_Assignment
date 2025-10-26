@@ -3,11 +3,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.FacultyRole;
-
+import Model.*;
 import Model.Faculty;
 import Model.User.UserAccount;
 import javax.swing.JPanel;
-
+import javax.swing.JOptionPane;
+import java.util.*;
 /**
  *
  * @author talha
@@ -16,6 +17,20 @@ public class PerformanceReportJPanel extends javax.swing.JPanel {
     private JPanel workArea;
     private UserAccount userAccount;
     private Faculty faculty;
+    private Map<String, List<CoursePerformanceData>> semesterCoursesMap;
+    private class CoursePerformanceData {
+        CourseOffering courseOffering;
+        double averageGrade;
+        Map<String, Integer> gradeDistribution; // Letter grade -> count
+        int enrollmentCount;
+        
+        public CoursePerformanceData(CourseOffering courseOffering) {
+            this.courseOffering = courseOffering;
+            this.averageGrade = 0.0;
+            this.gradeDistribution = new HashMap<>();
+            this.enrollmentCount = 0;
+        }
+    }
     /**
      * Creates new form PerformanceReportJPanel
      */
@@ -24,6 +39,160 @@ public class PerformanceReportJPanel extends javax.swing.JPanel {
         this.userAccount = userAccount;
         this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
+        initializeMockData();
+        populateSemesterDropdown();
+        cmbSelectSemester.addActionListener(e -> updateCourseDropdown());
+        cmbSelectCourse.addActionListener(e -> displayPerformanceReport());
+        
+    }
+    
+    private void initializeMockData() {
+        semesterCoursesMap = new HashMap<>();
+        
+        // Fall 2024 courses
+        List<CoursePerformanceData> fall2024Courses = new ArrayList<>();
+        
+        Course course1 = new Course("CS5010", "Program Design Paradigm", 4);
+        Course course2 = new Course("CS5800", "Algorithms", 4);
+        
+        CourseOffering offering1 = new CourseOffering(course1, "Fall 2024", faculty, 60, "Mon/Wed 2:00-3:30 PM");
+        CourseOffering offering2 = new CourseOffering(course2, "Fall 2024", faculty, 50, "Tue/Thu 10:00-11:30 AM");
+        
+        // CS5010 Performance Data
+        CoursePerformanceData perf1 = new CoursePerformanceData(offering1);
+        perf1.averageGrade = 85.5;
+        perf1.enrollmentCount = 45;
+        perf1.gradeDistribution.put("A", 12);
+        perf1.gradeDistribution.put("A-", 8);
+        perf1.gradeDistribution.put("B+", 10);
+        perf1.gradeDistribution.put("B", 8);
+        perf1.gradeDistribution.put("B-", 4);
+        perf1.gradeDistribution.put("C+", 2);
+        perf1.gradeDistribution.put("C", 1);
+        
+        // CS5800 Performance Data
+        CoursePerformanceData perf2 = new CoursePerformanceData(offering2);
+        perf2.averageGrade = 78.3;
+        perf2.enrollmentCount = 38;
+        perf2.gradeDistribution.put("A", 8);
+        perf2.gradeDistribution.put("A-", 6);
+        perf2.gradeDistribution.put("B+", 7);
+        perf2.gradeDistribution.put("B", 9);
+        perf2.gradeDistribution.put("B-", 5);
+        perf2.gradeDistribution.put("C+", 2);
+        perf2.gradeDistribution.put("C", 1);
+        
+        fall2024Courses.add(perf1);
+        fall2024Courses.add(perf2);
+        
+        semesterCoursesMap.put("Fall 2024", fall2024Courses);
+        
+        // Spring 2025 courses
+        List<CoursePerformanceData> spring2025Courses = new ArrayList<>();
+        
+        Course course3 = new Course("CS6220", "Data Mining", 3);
+        CourseOffering offering3 = new CourseOffering(course3, "Spring 2025", faculty, 40, "Mon/Wed 6:00-7:30 PM");
+        
+        CoursePerformanceData perf3 = new CoursePerformanceData(offering3);
+        perf3.averageGrade = 82.7;
+        perf3.enrollmentCount = 35;
+        perf3.gradeDistribution.put("A", 10);
+        perf3.gradeDistribution.put("A-", 7);
+        perf3.gradeDistribution.put("B+", 8);
+        perf3.gradeDistribution.put("B", 6);
+        perf3.gradeDistribution.put("B-", 3);
+        perf3.gradeDistribution.put("C+", 1);
+        
+        spring2025Courses.add(perf3);
+        
+        semesterCoursesMap.put("Spring 2025", spring2025Courses);
+    }
+
+    /**
+     * Populate semester dropdown
+     */
+    private void populateSemesterDropdown() {
+        cmbSelectSemester.removeAllItems();
+        cmbSelectSemester.addItem("-- Select Semester --");
+        
+        for (String semester : semesterCoursesMap.keySet()) {
+            cmbSelectSemester.addItem(semester);
+        }
+    }
+
+    /**
+     * Update course dropdown based on selected semester
+     */
+    private void updateCourseDropdown() {
+        cmbSelectCourse.removeAllItems();
+        cmbSelectCourse.addItem("-- Select Course --");
+        
+        String selectedSemester = (String) cmbSelectSemester.getSelectedItem();
+        
+        if (selectedSemester == null || selectedSemester.equals("-- Select Semester --")) {
+            clearReportFields();
+            return;
+        }
+        
+        List<CoursePerformanceData> courses = semesterCoursesMap.get(selectedSemester);
+        
+        if (courses != null) {
+            for (CoursePerformanceData perfData : courses) {
+                CourseOffering offering = perfData.courseOffering;
+                cmbSelectCourse.addItem(offering.getCourseID() + " - " + offering.getCourseName());
+            }
+        }
+        
+        clearReportFields();
+    }
+
+    /**
+     * Display performance report for selected course
+     */
+    private void displayPerformanceReport() {
+        String selectedSemester = (String) cmbSelectSemester.getSelectedItem();
+        int courseIndex = cmbSelectCourse.getSelectedIndex();
+        
+        if (selectedSemester == null || selectedSemester.equals("-- Select Semester --") ||
+            courseIndex <= 0) {
+            clearReportFields();
+            return;
+        }
+        
+        List<CoursePerformanceData> courses = semesterCoursesMap.get(selectedSemester);
+        
+        if (courses != null && courseIndex - 1 < courses.size()) {
+            CoursePerformanceData perfData = courses.get(courseIndex - 1);
+            
+            // Display average grade
+            txtAvgGrade.setText(String.format("%.2f%%", perfData.averageGrade));
+            
+            // Display grade distribution
+            StringBuilder distribution = new StringBuilder();
+            List<String> gradeOrder = Arrays.asList("A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F");
+            
+            for (String grade : gradeOrder) {
+                if (perfData.gradeDistribution.containsKey(grade)) {
+                    int count = perfData.gradeDistribution.get(grade);
+                    if (distribution.length() > 0) distribution.append(", ");
+                    distribution.append(grade).append(": ").append(count);
+                }
+            }
+            
+            txtGradeDistribution.setText(distribution.toString());
+            
+            // Display enrollment count
+            txtEnrollmentCount.setText(String.valueOf(perfData.enrollmentCount));
+        }
+    }
+
+    /**
+     * Clear all report fields
+     */
+    private void clearReportFields() {
+        txtAvgGrade.setText("");
+        txtGradeDistribution.setText("");
+        txtEnrollmentCount.setText("");
     }
 
     /**
@@ -90,20 +259,17 @@ public class PerformanceReportJPanel extends javax.swing.JPanel {
                             .addComponent(cmbSelectCourse, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(147, 147, 147)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblAvgGrade)
+                            .addComponent(lblGradeDistribution)
+                            .addComponent(lblEnrollmentCount))
+                        .addGap(56, 56, 56)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(lblEnrollmentCount)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(txtEnrollmentCount, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(lblAvgGrade)
-                                    .addComponent(lblGradeDistribution))
-                                .addGap(56, 56, 56)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(txtGradeDistribution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(txtAvgGrade, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
-                .addContainerGap(236, Short.MAX_VALUE))
+                            .addComponent(txtEnrollmentCount, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(txtAvgGrade, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+                                .addComponent(txtGradeDistribution)))))
+                .addContainerGap(199, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
