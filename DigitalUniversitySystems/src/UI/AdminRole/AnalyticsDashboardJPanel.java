@@ -32,7 +32,6 @@ public class AnalyticsDashboardJPanel extends javax.swing.JPanel {
     /**
      * Creates new form AnalyticsDashboardJPanel
      */
-    @SuppressWarnings("unused")
     public AnalyticsDashboardJPanel() {
         initComponents();
         populateMetricCombo();
@@ -46,20 +45,16 @@ public class AnalyticsDashboardJPanel extends javax.swing.JPanel {
         populateAnalyticsTable();
     }
 
-    // Public setters so other panels can provide the real data lists
-    @SuppressWarnings("unused")
     public void setOfferings(List<CourseOffering> offerings) {
         this.offerings = offerings != null ? offerings : new ArrayList<>();
         populateAnalyticsTable();
     }
 
-    @SuppressWarnings("unused")
     public void setEnrollments(List<Enrollment> enrollments) {
         this.enrollments = enrollments != null ? enrollments : new ArrayList<>();
         populateAnalyticsTable();
     }
 
-    @SuppressWarnings("unused")
     public void setFinancialRecords(List<FinancialRecord> records) {
         this.financialRecords = records != null ? records : new ArrayList<>();
         populateAnalyticsTable();
@@ -92,7 +87,6 @@ public class AnalyticsDashboardJPanel extends javax.swing.JPanel {
                 break;
             }
             case "Courses Offered per Semester": {
-                // role filter not used for this metric
                 DefaultTableModel model = new DefaultTableModel();
                 model.setColumnIdentifiers(new Object[]{"Semester", "Courses Offered"});
                 Map<String, Integer> coursesPerSemester = getCoursesOfferedPerSemester();

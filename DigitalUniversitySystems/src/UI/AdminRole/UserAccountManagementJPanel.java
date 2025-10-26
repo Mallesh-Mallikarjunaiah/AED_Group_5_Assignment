@@ -26,6 +26,8 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
         initComponents();
         this.accountDirectory = directory;
         this.refreshTable();
+        // hide the internal UNID column to prevent accidental edits/visibility
+        hideUnidColumn();
     }
 
     /**
@@ -116,11 +118,32 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
         }
 
         DefaultTableModel model = (DefaultTableModel) tblUserAccountManagement.getModel();
-        String name = model.getValueAt(selectedRow, 1).toString();
-        String username = model.getValueAt(selectedRow, 2).toString();
-        String password = model.getValueAt(selectedRow, 3).toString();
+        // Map view row to model row in case a RowSorter is active
+        int modelRow = tblUserAccountManagement.convertRowIndexToModel(selectedRow);
 
-        UserAccount account = accountDirectory.getUserAccountList().get(selectedRow);
+        // Get values directly from the model
+        Object nameObj = model.getValueAt(modelRow, 1);
+        Object usernameObj = model.getValueAt(modelRow, 2);
+        Object passwordObj = model.getValueAt(modelRow, 3);
+
+        String name = nameObj == null ? "" : nameObj.toString();
+        String username = usernameObj == null ? "" : usernameObj.toString();
+        String password = passwordObj == null ? "" : passwordObj.toString();
+
+        // Lookup the account by UNID present in column 0 to avoid index mismatch when filtering
+        Object unidObj = model.getValueAt(modelRow, 0);
+        if (unidObj == null) {
+            JOptionPane.showMessageDialog(this, "Unable to determine selected user account (missing UNID).");
+            return;
+        }
+        String unid = unidObj.toString();
+
+        UserAccount account = accountDirectory.findUserAccount(unid);
+        if (account == null) {
+            JOptionPane.showMessageDialog(this, "Selected user account could not be found.");
+            return;
+        }
+
         account.setUsername(username);
         account.setPassword(password);
         account.getProfile().getPerson().setName(name);
@@ -143,7 +166,21 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
             JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            accountDirectory.getUserAccountList().remove(selectedRow);
+            DefaultTableModel model = (DefaultTableModel) tblUserAccountManagement.getModel();
+            int modelRow = tblUserAccountManagement.convertRowIndexToModel(selectedRow);
+            Object unidObj = model.getValueAt(modelRow, 0);
+            if (unidObj == null) {
+                JOptionPane.showMessageDialog(this, "Unable to determine selected user account (missing UNID).");
+                return;
+            }
+            String unid = unidObj.toString();
+            UserAccount account = accountDirectory.findUserAccount(unid);
+            if (account == null) {
+                JOptionPane.showMessageDialog(this, "Selected user account could not be found.");
+                return;
+            }
+
+            accountDirectory.getUserAccountList().remove(account);
             refreshTable();
 
             JOptionPane.showMessageDialog(this, "User account deleted successfully!");
@@ -158,10 +195,26 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
             if(ua.getProfile() instanceof Admin) continue;
             Object[] obj = new Object[4];
             obj[0] = ua.getProfile().getPerson().getUNID();
-            obj[1] = ua;
+            // store the name string instead of the UserAccount object to avoid replacement when edited
+            obj[1] = ua.getProfile().getPerson().getName();
             obj[2] = ua.getUsername();
             obj[3] = ua.getPassword();
             model.addRow(obj);
+        }
+    }
+
+    private void hideUnidColumn() {
+        // Ensure table has a column model and at least one column
+        if (tblUserAccountManagement.getColumnModel().getColumnCount() > 0) {
+            try {
+                javax.swing.table.TableColumn col = tblUserAccountManagement.getColumnModel().getColumn(0);
+                col.setMinWidth(0);
+                col.setMaxWidth(0);
+                col.setPreferredWidth(0);
+                col.setResizable(false);
+            } catch (Exception ex) {
+                // ignore - this is a UI convenience, not critical
+            }
         }
     }
 
