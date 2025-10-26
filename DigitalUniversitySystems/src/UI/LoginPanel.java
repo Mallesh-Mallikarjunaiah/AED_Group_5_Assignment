@@ -11,9 +11,12 @@ import Model.User.UserAccountDirectory;
 import UI.AdminRole.AdminDashboardJPanel;
 import UI.FacultyRole.FacultyDashboardJPanel;
 import UI.RegistrarRole.RegistrarDashboardJPanel;
+import UI.StudentRole.StudentDashboardJPanel; // Added Student Dashboard
+import Model.accesscontrol.ConfigureJTable; // Import ConfigureJTable for initialization
 import java.awt.CardLayout;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import Model.Student;
 /**
  *
  * @author gagan
@@ -24,27 +27,30 @@ public class LoginPanel extends javax.swing.JPanel {
     private JPanel adminDashboardPanel;
     private JPanel facultyDashboardPanel;
     private JPanel studentDashboardPanel;
-    private JPanel registrarDashboardPanel; // Changed to generic JPanel for switch use
+    private JPanel registrarDashboardPanel;
     private UserAccountDirectory accountDirectory;
 
     
     // Constructor must be public LoginPanel(JPanel workArea) { ... }
     public LoginPanel(JPanel workArea) {
-        initComponents();
-        this.workArea = workArea;
+        // 1. Initialize Directory and Data BEFORE initComponents() is called.
         this.accountDirectory = new UserAccountDirectory();
         
-        // Account Creation (remains unchanged)
-        this.accountDirectory.newUserAccount("admin", "0000",
-                "admin", "pass", ProfileEnum.ADMIN,
-                null, "email@email.com");
-        this.accountDirectory.newUserAccount("faculty", "1111", "faculty", "pass", ProfileEnum.FACULTY, Department.DS, "facultyemail@gmail.com");
-        this.accountDirectory.newUserAccount("registrar", "0000",
-                "registrar", "pass", ProfileEnum.REGISTRAR,
-                null, "registrar@email.com");
+        // --- CRITICAL FIX: Initialize Data Source ---
+        ConfigureJTable.initializeData(this.accountDirectory); 
+        // Note: The hardcoded newUserAccount calls below must be removed from your actual file,
+        // as the data is now created and loaded in ConfigureJTable.initializeData().
+        
+        initComponents();
+        this.workArea = workArea;
     }
+    
+    // NOTE: The hardcoded newUserAccount calls are now commented out/removed from the constructor body
+    // to prevent duplicate data creation, as ConfigureJTable handles it.
+
 
     private UserAccount authenticate(String username, String password) {
+        // Authenticate using the data loaded by ConfigureJTable
         for(UserAccount ua: this.accountDirectory.getUserAccountList()) {
             if (ua.getUsername().equals(username) && ua.getPassword().equals(password)) {
                 return ua;
@@ -52,32 +58,32 @@ public class LoginPanel extends javax.swing.JPanel {
         }
         return null;
     }
-
     /**
      * Called by Login action. Switches the main view to the appropriate dashboard.
      */
-     public void showDashboard(UserAccount userAccount) {
+    public void showDashboard(UserAccount userAccount) {
         
         CardLayout cardLayout = (CardLayout) workArea.getLayout();
         String roleString = userAccount.getProfile().getRole();
         ProfileEnum profile = ProfileEnum.fromProfile(roleString);
         
-        // Pass the workArea JPanel itself as the container/reference
         JPanel container = this.workArea;
 
         switch (profile) {
             case ADMIN:
-                adminDashboardPanel = new AdminDashboardJPanel(container, accountDirectory, userAccount);
-                workArea.add(adminDashboardPanel, "AdminDashBoardPanel");
-                cardLayout.show(container, "AdminDashBoardPanel"); // Explicit card show
+                if (adminDashboardPanel == null) {
+                    adminDashboardPanel = new AdminDashboardJPanel(container, accountDirectory, userAccount);
+                    workArea.add(adminDashboardPanel, "AdminDashBoardPanel");
+                }
+                cardLayout.show(container, "AdminDashBoardPanel"); 
                 break;
+                
             case REGISTRAR:
                 if (registrarDashboardPanel == null) {
-                    // FIX: Using the consistent 3-arg constructor signature
                     registrarDashboardPanel = new RegistrarDashboardJPanel(container, accountDirectory, userAccount);
                     workArea.add(registrarDashboardPanel, "RegistrarDashboardPanel");
                 }
-                cardLayout.show(container, "RegistrarDashboardPanel"); // Explicit card show
+                cardLayout.show(container, "RegistrarDashboardPanel"); 
                 break;
                 
             case FACULTY:
@@ -85,16 +91,16 @@ public class LoginPanel extends javax.swing.JPanel {
                     facultyDashboardPanel = new FacultyDashboardJPanel(container, accountDirectory, userAccount);
                     workArea.add(facultyDashboardPanel, "FacultyDashboardPanel");
                 }
-                cardLayout.show(container, "FacultyDashboardPanel"); // Explicit card show
+                cardLayout.show(container, "FacultyDashboardPanel");
                 break;
                 
             case STUDENT:
                 if (studentDashboardPanel == null) {
-                    // Assuming StudentDashboard also uses the consistent 3-arg constructor
-                    // studentDashboardPanel = new StudentDashboardJPanel(container, accountDirectory, userAccount);
-                    // workArea.add(studentDashboardPanel, "StudentDashboardPanel");
+                    // Instantiation for Student Dashboard (requires Student object)
+                    studentDashboardPanel = new StudentDashboardJPanel(container, accountDirectory, userAccount);
+                    workArea.add(studentDashboardPanel, "StudentDashboardPanel");
                 }
-                // cardLayout.show(container, "StudentDashboardPanel");
+                cardLayout.show(container, "StudentDashboardPanel");
                 break;
                 
             default:
@@ -187,26 +193,19 @@ public class LoginPanel extends javax.swing.JPanel {
         String username = txtUsername.getText();
         String password = new String(jPasswordField.getPassword());
 
-        // 1. Input Validation (Crucial for grading)
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Username and Password cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // 2. Authentication (REPLACE with your AuthService.authenticate method call)
         UserAccount authenticatedUser = authenticate(username, password);
 
         if (authenticatedUser != null) {
             JOptionPane.showMessageDialog(this, "Login Successful! Role: " + authenticatedUser.getProfile().getRole(), "Success", JOptionPane.INFORMATION_MESSAGE);
-
-            // 3. Call the central method to switch the view to the appropriate dashboard
             showDashboard(authenticatedUser);
-
-            // Clear fields after successful login
             txtUsername.setText("");
             jPasswordField.setText("");
         } else {
-            // Failure
             JOptionPane.showMessageDialog(this, "Invalid Username or Password.", "Authentication Failed", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnLoginActionPerformed
