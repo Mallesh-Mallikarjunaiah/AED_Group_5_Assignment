@@ -182,7 +182,7 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
         String email = this.txtEmail.getText();
         String un = this.txtUserName.getText();
         String pw = this.txtPassword.getText();
-        ProfileEnum profile = ProfileEnum.valueOf(this.comboxRole.getSelectedItem().toString());
+        ProfileEnum profile = ProfileEnum.fromProfile(this.comboxRole.getSelectedItem().toString());
         Department dept =  Department.valueOf(this.deptComboBox.getSelectedItem().toString());
         
         this.accountDirectory.newUserAccount(name, contactNum, un, pw, profile, dept, email);

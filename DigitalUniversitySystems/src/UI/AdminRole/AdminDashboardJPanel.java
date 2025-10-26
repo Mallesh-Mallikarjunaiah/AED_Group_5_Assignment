@@ -6,6 +6,12 @@ package UI.AdminRole;
 
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
+import Model.Person;
+import Model.ProfileManagementDialog;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import java.awt.CardLayout;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
@@ -16,6 +22,7 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
     
     private UserAccountDirectory accountDirectory;
     private UserAccount account;
+    private JPanel mainWorkArea;
 
     /**
      * Creates new form AdminDashboardJPanel
@@ -24,6 +31,7 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
         initComponents();
         this.accountDirectory = accountDirectory;
         this.account = account;
+        this.mainWorkArea = workArea;
     }
 
     /**
@@ -38,12 +46,13 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
         splitPane = new javax.swing.JSplitPane();
         controlPanel = new javax.swing.JPanel();
         lblTitle = new javax.swing.JLabel();
-        btnRecordsSearch = new javax.swing.JButton();
+        btnStudentFacultySearch = new javax.swing.JButton();
         btnAnalyticsDashboard = new javax.swing.JButton();
         btnPersonRegistration = new javax.swing.JButton();
         btnUserAccountManagement = new javax.swing.JButton();
         btnLogout = new javax.swing.JButton();
         btnPersonProfile = new javax.swing.JButton();
+        btnRegistrarSearch = new javax.swing.JButton();
         workArea = new javax.swing.JPanel();
 
         setBackground(new java.awt.Color(204, 255, 204));
@@ -58,11 +67,26 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
         lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         lblTitle.setText("Welcome Admin");
 
-        btnRecordsSearch.setText("Records Search");
+        btnStudentFacultySearch.setText("StudentFacultySearch");
+        btnStudentFacultySearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStudentFacultySearchActionPerformed(evt);
+            }
+        });
 
         btnAnalyticsDashboard.setText("Analytics Dashboard");
+        btnAnalyticsDashboard.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAnalyticsDashboardActionPerformed(evt);
+            }
+        });
 
         btnPersonRegistration.setText("Person Registration");
+        btnPersonRegistration.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPersonRegistrationActionPerformed(evt);
+            }
+        });
 
         btnUserAccountManagement.setText("User Account Management");
         btnUserAccountManagement.addActionListener(new java.awt.event.ActionListener() {
@@ -72,55 +96,70 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
         });
 
         btnLogout.setText("Logout");
+        btnLogout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLogoutActionPerformed(evt);
+            }
+        });
 
         btnPersonProfile.setText("Profile");
+        btnPersonProfile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPersonProfileActionPerformed(evt);
+            }
+        });
+
+        btnRegistrarSearch.setText("RegistrarSearch");
+        btnRegistrarSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegistrarSearchActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout controlPanelLayout = new javax.swing.GroupLayout(controlPanel);
         controlPanel.setLayout(controlPanelLayout);
         controlPanelLayout.setHorizontalGroup(
             controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(controlPanelLayout.createSequentialGroup()
-                .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(controlPanelLayout.createSequentialGroup()
-                        .addGap(14, 14, 14)
-                        .addComponent(btnLogout))
-                    .addComponent(btnUserAccountManagement, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                    .addComponent(btnRecordsSearch, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 149, Short.MAX_VALUE)
-                    .addGroup(controlPanelLayout.createSequentialGroup()
-                        .addContainerGap()
+                .addGap(38, 38, 38)
+                .addComponent(btnLogout)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, controlPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(btnStudentFacultySearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnUserAccountManagement, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(btnRegistrarSearch, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnPersonRegistration, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, controlPanelLayout.createSequentialGroup()
                         .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                                 .addComponent(btnPersonProfile, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btnAnalyticsDashboard, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addComponent(lblTitle))))
+                            .addComponent(lblTitle))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(controlPanelLayout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(btnPersonRegistration, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
-                    .addContainerGap()))
         );
         controlPanelLayout.setVerticalGroup(
             controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(controlPanelLayout.createSequentialGroup()
                 .addGap(26, 26, 26)
                 .addComponent(lblTitle)
-                .addGap(91, 91, 91)
+                .addGap(40, 40, 40)
+                .addComponent(btnPersonRegistration)
+                .addGap(28, 28, 28)
                 .addComponent(btnUserAccountManagement)
                 .addGap(18, 18, 18)
-                .addComponent(btnRecordsSearch)
+                .addComponent(btnStudentFacultySearch)
+                .addGap(18, 18, 18)
+                .addComponent(btnRegistrarSearch)
                 .addGap(18, 18, 18)
                 .addComponent(btnAnalyticsDashboard)
                 .addGap(18, 18, 18)
                 .addComponent(btnPersonProfile)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 137, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, Short.MAX_VALUE)
                 .addComponent(btnLogout)
-                .addGap(17, 17, 17))
-            .addGroup(controlPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(controlPanelLayout.createSequentialGroup()
-                    .addGap(93, 93, 93)
-                    .addComponent(btnPersonRegistration)
-                    .addContainerGap(349, Short.MAX_VALUE)))
+                .addGap(42, 42, 42))
         );
 
         splitPane.setLeftComponent(controlPanel);
@@ -148,7 +187,59 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
 
     private void btnUserAccountManagementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUserAccountManagementActionPerformed
         // TODO add your handling code here:
+        UserAccountManagementJPanel panel = new UserAccountManagementJPanel(accountDirectory);
+        this.splitPane.setRightComponent(panel);
     }//GEN-LAST:event_btnUserAccountManagementActionPerformed
+
+    private void btnPersonRegistrationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPersonRegistrationActionPerformed
+        // TODO add your handling code here:
+        PersonRegistrationJPanel panel = new PersonRegistrationJPanel(accountDirectory);
+        this.splitPane.setRightComponent(panel);
+    }//GEN-LAST:event_btnPersonRegistrationActionPerformed
+
+    private void btnStudentFacultySearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStudentFacultySearchActionPerformed
+        // TODO add your handling code here:
+        StudentFacultySearchJPanel panel = new StudentFacultySearchJPanel(accountDirectory);
+        this.splitPane.setRightComponent(panel);
+    }//GEN-LAST:event_btnStudentFacultySearchActionPerformed
+
+    private void btnRegistrarSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarSearchActionPerformed
+        // TODO add your handling code here:
+        RegistrarSearchJPanel panel = new RegistrarSearchJPanel(accountDirectory);
+        this.splitPane.setRightComponent(panel);
+    }//GEN-LAST:event_btnRegistrarSearchActionPerformed
+
+    private void btnAnalyticsDashboardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAnalyticsDashboardActionPerformed
+        // TODO add your handling code here:
+        AnalyticsDashboardJPanel panel = new AnalyticsDashboardJPanel(accountDirectory);
+        this.splitPane.setRightComponent(panel);
+    }//GEN-LAST:event_btnAnalyticsDashboardActionPerformed
+
+    private void btnPersonProfileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPersonProfileActionPerformed
+        // Open ProfileManagementDialog for the currently logged-in user's profile
+        if (this.account == null || this.account.getProfile() == null) {
+            JOptionPane.showMessageDialog(this, "No user account available to edit profile.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Person personToEdit = this.account.getProfile().getPerson();
+
+        java.awt.Window win = SwingUtilities.getWindowAncestor(this);
+        JFrame parentFrame = null;
+        if (win instanceof JFrame) parentFrame = (JFrame) win;
+
+        ProfileManagementDialog dialog = new ProfileManagementDialog(parentFrame, true, personToEdit);
+        dialog.setVisible(true);
+    }//GEN-LAST:event_btnPersonProfileActionPerformed
+
+    private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
+        // TODO add your handling code here:
+        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
+        
+        this.mainWorkArea.remove(this);
+        CardLayout layout = (CardLayout) this.mainWorkArea.getLayout();
+        layout.previous(this.mainWorkArea); 
+    }//GEN-LAST:event_btnLogoutActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -156,7 +247,8 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton btnPersonProfile;
     private javax.swing.JButton btnPersonRegistration;
-    private javax.swing.JButton btnRecordsSearch;
+    private javax.swing.JButton btnRegistrarSearch;
+    private javax.swing.JButton btnStudentFacultySearch;
     private javax.swing.JButton btnUserAccountManagement;
     private javax.swing.JPanel controlPanel;
     private javax.swing.JLabel lblTitle;

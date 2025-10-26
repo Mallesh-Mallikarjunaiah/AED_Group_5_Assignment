@@ -4,17 +4,82 @@
  */
 package UI.AdminRole;
 
+import Model.Department;
+import Model.Faculty;
+import Model.Student;
+import Model.User.UserAccount;
+import Model.User.UserAccountDirectory;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author gagan
  */
 public class StudentFacultySearchJPanel extends javax.swing.JPanel {
 
+    private UserAccountDirectory accountDirectory;
+    private UserAccount selectedAccount;
+
     /**
      * Creates new form RecordsSearchJPanel
      */
     public StudentFacultySearchJPanel() {
         initComponents();
+    }
+
+    private void initializeComponents() {
+        comboxDepartment.removeAllItems();
+        for (Department dept : Department.values()) {
+            comboxDepartment.addItem(dept.toString());
+        }
+        setFieldsEditable(false);
+        btnSave.setEnabled(false);
+        btnEdit.setEnabled(false);
+    }
+
+    public StudentFacultySearchJPanel(UserAccountDirectory accountDirectory) {
+        initComponents();
+        this.accountDirectory = accountDirectory;
+        initializeComponents();
+        populateTable();
+    }
+
+    private void populateTable() {
+        DefaultTableModel model = (DefaultTableModel) tblSearch.getModel();
+        model.setRowCount(0);
+
+        for(UserAccount account : accountDirectory.getUserAccountList()) {
+            if (account.getProfile() instanceof Student || account.getProfile() instanceof Faculty) {
+                Object[] row = new Object[7];
+                row[0] = account.getProfile().getPerson().getUNID();
+                row[1] = account.getProfile().getPerson().getName();
+                row[2] = account.getProfile() instanceof Student ? "Student" : "Faculty";
+                if(account.getProfile() instanceof Student student) {
+                    row[3] = student.getDepartment();
+                } else {
+                    row[3] = ((Faculty)account.getProfile()).getDepartment();
+                }
+                row[4] = account.getProfile().getPerson().getEmail();
+                row[5] = account.getProfile().getPerson().getContactNumber();
+                row[6] = account.getProfile().isActive() ? "YES" : "NO";
+                model.addRow(row);
+            }
+        }
+    }
+
+    private void setFieldsEditable(boolean editable) {
+        comboxDepartment.setEnabled(editable && selectedAccount != null && selectedAccount.getProfile() instanceof Faculty);
+        txtEmail.setEditable(editable);
+        txtContactNumber.setEditable(editable);
+        txtAcademicStatus.setEditable(editable);
+    }
+
+    private void clearFields() {
+        comboxDepartment.setSelectedIndex(0);
+        txtEmail.setText("");
+        txtContactNumber.setText("");
+        txtAcademicStatus.setText("");
     }
 
     /**
@@ -76,10 +141,25 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
         jScrollPane1.setViewportView(tblSearch);
 
         btnView.setText("View");
+        btnView.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnViewActionPerformed(evt);
+            }
+        });
 
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         btnEdit.setText("Edit");
+        btnEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditActionPerformed(evt);
+            }
+        });
 
         lblDepartment.setText("Department");
 
@@ -92,6 +172,11 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
         lblAcademicStatus.setText("Academic Status");
 
         btnSave.setText("Save");
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -172,6 +257,121 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
                 .addGap(23, 23, 23))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnViewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewActionPerformed
+        int selectedRow = tblSearch.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a row to view");
+            return;
+        }
+
+        int unid = Integer.parseInt(tblSearch.getValueAt(selectedRow, 0).toString());
+        for (UserAccount account : accountDirectory.getUserAccountList()) {
+            if (account.getProfile().getPerson().getUNID() == unid) {
+                selectedAccount = account;
+                break;
+            }
+        }
+
+        if (selectedAccount != null) {
+            if (selectedAccount.getProfile() instanceof Faculty) {
+                Faculty faculty = (Faculty) selectedAccount.getProfile();
+                comboxDepartment.setSelectedItem(faculty.getDepartment().toString());
+            } else {
+                Student student = (Student) selectedAccount.getProfile();
+                comboxDepartment.setSelectedItem(student.getDepartment().toString());
+            }
+
+            txtEmail.setText(selectedAccount.getProfile().getPerson().getEmail());
+            txtContactNumber.setText(selectedAccount.getProfile().getPerson().getContactNumber());
+            txtAcademicStatus.setText(selectedAccount.getProfile().isActive() ? "YES" : "NO");
+
+            setFieldsEditable(false);
+
+            btnSave.setEnabled(false);
+            btnView.setEnabled(false);
+            btnDelete.setEnabled(true);
+            btnEdit.setEnabled(true);
+        }
+    }//GEN-LAST:event_btnViewActionPerformed
+
+    private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
+        if (selectedAccount == null) {
+            JOptionPane.showMessageDialog(this, "Please view a record first");
+            return;
+        }
+
+        setFieldsEditable(true);
+
+        btnSave.setEnabled(true);
+        btnView.setEnabled(false);
+        btnEdit.setEnabled(false);
+        btnDelete.setEnabled(false);
+    }//GEN-LAST:event_btnEditActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        // TODO add your handling code here:
+        int selectedRow = tblSearch.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a row to delete");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to delete this user?",
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            int unid = Integer.parseInt(tblSearch.getValueAt(selectedRow, 0).toString());
+
+            UserAccount accountToRemove = null;
+            for (UserAccount account : accountDirectory.getUserAccountList()) {
+                if (account.getProfile().getPerson().getUNID() == unid) {
+                    accountToRemove = account;
+                    break;
+                }
+            }
+
+            if (accountToRemove != null) {
+                accountDirectory.getUserAccountList().remove(accountToRemove);
+                populateTable();
+                clearFields();
+                selectedAccount = null;
+                JOptionPane.showMessageDialog(this, "User deleted successfully");
+            }
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        if (selectedAccount == null) {
+            return;
+        }
+
+        if (selectedAccount.getProfile() instanceof Faculty) {
+            Faculty faculty = (Faculty) selectedAccount.getProfile();
+            faculty.setDepartment(Department.valueOf(comboxDepartment.getSelectedItem().toString()));
+        }
+
+        selectedAccount.getProfile().getPerson().setEmail(txtEmail.getText());
+        selectedAccount.getProfile().getPerson().setContactNumber(txtContactNumber.getText());
+        selectedAccount.getProfile().setActive(txtAcademicStatus.getText().equalsIgnoreCase("YES"));
+
+        populateTable();
+        clearFields();
+        setFieldsEditable(false);
+
+        btnSave.setEnabled(false);
+        btnEdit.setEnabled(false);
+        btnDelete.setEnabled(true);
+
+        selectedAccount = null;
+
+        JOptionPane.showMessageDialog(this, "Record updated successfully");
+    }//GEN-LAST:event_btnSaveActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

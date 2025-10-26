@@ -4,8 +4,11 @@
  */
 package UI.AdminRole;
 
+import Model.Admin;
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
+
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -36,7 +39,6 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         tblUserAccountManagement = new javax.swing.JTable();
-        btnCreate = new javax.swing.JButton();
         btnModify = new javax.swing.JButton();
         btnDelete = new javax.swing.JButton();
 
@@ -56,7 +58,7 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false
+                false, true, true, true
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -65,11 +67,19 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
         });
         jScrollPane1.setViewportView(tblUserAccountManagement);
 
-        btnCreate.setText("Create");
-
         btnModify.setText("Modify");
+        btnModify.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnModifyActionPerformed(evt);
+            }
+        });
 
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -77,12 +87,10 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(48, 48, 48)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnCreate)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(btnModify)
-                        .addGap(117, 117, 117)
+                        .addGap(18, 18, 18)
                         .addComponent(btnDelete))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(100, Short.MAX_VALUE))
@@ -94,18 +102,60 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 143, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(48, 48, 48)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnCreate)
                     .addComponent(btnModify)
                     .addComponent(btnDelete))
                 .addContainerGap(188, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnModifyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnModifyActionPerformed
+        int selectedRow = tblUserAccountManagement.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a row to modify");
+            return;
+        }
+
+        DefaultTableModel model = (DefaultTableModel) tblUserAccountManagement.getModel();
+        String name = model.getValueAt(selectedRow, 1).toString();
+        String username = model.getValueAt(selectedRow, 2).toString();
+        String password = model.getValueAt(selectedRow, 3).toString();
+
+        UserAccount account = accountDirectory.getUserAccountList().get(selectedRow);
+        account.setUsername(username);
+        account.setPassword(password);
+        account.getProfile().getPerson().setName(name);
+
+        refreshTable();
+
+        JOptionPane.showMessageDialog(this, "User account updated successfully!");
+    }//GEN-LAST:event_btnModifyActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        int selectedRow = tblUserAccountManagement.getSelectedRow();
+        if (selectedRow < 0) {
+            JOptionPane.showMessageDialog(this, "Please select a row to delete");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to delete this user account?",
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            accountDirectory.getUserAccountList().remove(selectedRow);
+            refreshTable();
+
+            JOptionPane.showMessageDialog(this, "User account deleted successfully!");
+        }
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
     private void refreshTable() {
         DefaultTableModel model = (DefaultTableModel)tblUserAccountManagement.getModel();
         model.setRowCount(0);
         
         for(UserAccount ua: this.accountDirectory.getUserAccountList()) {
+            if(ua.getProfile() instanceof Admin) continue;
             Object[] obj = new Object[4];
             obj[0] = ua.getProfile().getPerson().getUNID();
             obj[1] = ua;
@@ -116,7 +166,6 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnCreate;
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnModify;
     private javax.swing.JScrollPane jScrollPane1;
