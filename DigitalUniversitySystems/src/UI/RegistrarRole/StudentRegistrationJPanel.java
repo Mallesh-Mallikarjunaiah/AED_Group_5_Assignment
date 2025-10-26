@@ -6,10 +6,13 @@ package UI.RegistrarRole;
 
 import Model.Student;
 import Model.Person;
+import Model.Department;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
-import java.util.ArrayList; 
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.HashMap;
 /**
  *
  * @author jayan
@@ -17,17 +20,65 @@ import java.util.ArrayList;
 public class StudentRegistrationJPanel extends javax.swing.JPanel {
 
     private Student currentStudent; 
+    private final HashMap<String, Student> localStudentData; // Local Mock Data Store
     
     public StudentRegistrationJPanel() {
         initComponents();
+        this.localStudentData = initializeMockData();
         resetStudentDetails();
+        
         // Attaching the JTable listener for selection events
         tblStudentRegistration.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tblStudentRegistration.getSelectedRow() != -1) {
+                // Logic to enable/disable Enroll/Drop buttons based on status
                 updateEnrollDropButtons();
             }
         });
     }
+    
+    // --- Mock Data Initialization (Replaces global DataStore for local testing) ---
+    private HashMap<String, Student> initializeMockData() {
+        HashMap<String, Student> data = new HashMap<>();
+        Department deptIS = Department.IS;
+        Department deptCS = Department.CS;
+
+        // Creating pre-populated student data (as required by assignment)
+        // Student 1: Enrolled in 8 credits, Paid up
+        Person p1 = new Person("Amelia Jones", "aj@uni.edu", "555-1001");
+        Student s1 = new Student(p1, deptIS);
+        s1.setCreditsCompleted(8); 
+        data.put("Amelia Jones", s1);
+        data.put("1001", s1);
+
+        // Student 2: Enrolled in 4 credits, On academic warning
+        Person p2 = new Person("Ben Carter", "bc@uni.edu", "555-1002");
+        Student s2 = new Student(p2, deptCS);
+        s2.setCreditsCompleted(4); 
+        data.put("Ben Carter", s2);
+        data.put("1002", s2);
+
+        return data;
+    }
+
+    // Searches the local store by name or ID
+    private Student searchLocalData(String searchInput) {
+        String input = searchInput.trim();
+        
+        // Search by Name (Case-Insensitive)
+        Student student = localStudentData.keySet().stream()
+            .filter(key -> !key.matches("\\d+") && key.equalsIgnoreCase(input))
+            .findFirst()
+            .map(localStudentData::get)
+            .orElse(null);
+        
+        // If not found by name, search by ID
+        if (student == null) {
+            student = localStudentData.get(input);
+        }
+        return student;
+    }
+    // --- End Mock Data Logic ---
+    
     
     private void resetStudentDetails() {
         fieldName.setText("//Name");
@@ -40,11 +91,11 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         btnDrop.setEnabled(false);
     }
     
-    // Updates the fields and populates the enrollment table for the found student
+    // Updates the profile info labels and calls to populate the enrollment table
     private void displayStudent(Student student) {
         this.currentStudent = student;
         
-        // --- FIXES: Accessing Name and ID through the Person object ---
+        // --- FIX: Accessing Name and ID through the Person object ---
         fieldName.setText(student.getPerson().getName());
         fieldID.setText(String.valueOf(student.getPerson().getUNID()));
         // -----------------------------------------------------------------
@@ -58,9 +109,8 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         DefaultTableModel model = (DefaultTableModel) tblStudentRegistration.getModel();
         model.setRowCount(0);
         
-        // --- MOCK LOGIC: Replace with call to EnrollmentService.getEnrollments(student) ---
-        List<String[]> mockEnrollments = createMockEnrollments(student); 
-        // --- END MOCK LOGIC ---
+        // Mock Enrollment Data based on student ID
+        List<String[]> mockEnrollments = getMockEnrollmentList(student); 
 
         for (String[] enrollment : mockEnrollments) {
             model.addRow(new Object[]{enrollment[0], enrollment[1], enrollment[2]});
@@ -68,6 +118,7 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         updateEnrollDropButtons();
     }
     
+    // Logic to determine if Enroll/Drop buttons should be enabled
     private void updateEnrollDropButtons() {
         int selectedRow = tblStudentRegistration.getSelectedRow();
         if (currentStudent == null || selectedRow < 0) {
@@ -85,12 +136,19 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         btnDrop.setEnabled(status.equals("Enrolled"));
     }
     
-    private List<String[]> createMockEnrollments(Student student) {
+    // Mock Enrollment Data: simulates data retrieved from EnrollmentService
+    private List<String[]> getMockEnrollmentList(Student student) {
         List<String[]> mockList = new ArrayList<>();
-        // Example structure: {Course ID, Course Name, Status}
-        mockList.add(new String[]{"INFO 5100", "App Engineering", "Enrolled"});
-        mockList.add(new String[]{"CS 5010", "Algorithms", "Available"});
-        mockList.add(new String[]{"MATH 6000", "Advanced Calculus", "Dropped"});
+        
+        if (student.getPerson().getUNID() == 1001) { // Amelia Jones
+            mockList.add(new String[]{"INFO 5100", "App Engineering", "Enrolled"});
+            mockList.add(new String[]{"CS 5010", "Algorithms", "Enrolled"});
+            mockList.add(new String[]{"MGT 6500", "Finance", "Available"});
+        } else { // Default or Ben Carter
+            mockList.add(new String[]{"CS 5010", "Algorithms", "Enrolled"});
+            mockList.add(new String[]{"MATH 6000", "Advanced Calc", "Available"});
+            mockList.add(new String[]{"EE 5000", "Digital Circuits", "Dropped"});
+        }
         return mockList;
     }
 
@@ -244,18 +302,12 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
             return;
         }
         
-        // MOCK SUCCESS CASE: Replace with actual UserService lookup
-        if (searchInput.equals("123") || searchInput.equalsIgnoreCase("john doe")) {
-            // Create a mock student profile using your Model constructor
-            Person mockPerson = new Person("John Doe", "jdoe@uni.edu", "555-1234") { }; // Abstract fix
-            Student foundStudent = new Student(mockPerson, null); // Null department placeholder
-            
-            // Set mock academic status (since constructor is simple)
-            foundStudent.setCreditsCompleted(12);
-            
+        Student foundStudent = searchLocalData(searchInput);
+        
+        if (foundStudent != null) {
             displayStudent(foundStudent);
         } else {
-            JOptionPane.showMessageDialog(this, "Student not found.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Student not found with name/ID: " + searchInput, "Error", JOptionPane.ERROR_MESSAGE);
             resetStudentDetails();
         }
     }//GEN-LAST:event_btnSearchStudentActionPerformed
