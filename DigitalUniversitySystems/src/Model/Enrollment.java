@@ -12,7 +12,8 @@ public class Enrollment {
     private Student student;
     private CourseOffering courseOffering;
     private String grade;
-    private boolean isActive; // True = enrolled, False = dropped
+    private boolean isActive;
+    // True = enrolled, False = dropped
 
     public Enrollment(Student student, CourseOffering courseOffering) {
         this.student = student;
@@ -31,4 +32,19 @@ public class Enrollment {
     
     // Helper getter for JTable display in StudentRegistrationJPanel
     public String getEnrollmentStatus() { return isActive ? "Enrolled" : "Dropped"; }
+    
+    public void markCompleted() {
+    this.isActive = false; // Enrollment not active after course completion
+}
+    public boolean isCompleted() {
+    // Assuming a grade other than "N/A" means completed
+    return this.grade != null && !this.grade.equalsIgnoreCase("N/A");
+}
+public String getGrade() {
+    return grade;
+}
+
+public void setGrade(String grade) {
+    this.grade = grade;
+}
 }

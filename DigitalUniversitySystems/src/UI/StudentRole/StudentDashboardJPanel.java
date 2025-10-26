@@ -3,18 +3,40 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
+import Model.User.UserAccount;
+import Model.User.UserAccountDirectory;
+import Model.Student;
+import Model.Enrollment;
+import Model.CourseOffering;
+import Model.Person;
+import Model.ProfileManagementDialog;
+import java.awt.CardLayout;
+import java.util.ArrayList;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
  *
  * @author jayan
  */
 public class StudentDashboardJPanel extends javax.swing.JPanel {
-
+    private UserAccount userAccount;
+    private UserAccountDirectory accountDirectory;
+    private JPanel mainWorkArea;
+    private ArrayList<CourseOffering> courseOfferings;
+    private ArrayList<Enrollment> enrollments;
     /**
      * Creates new form StudentDashboardJPanel
      */
-    public StudentDashboardJPanel() {
+    public StudentDashboardJPanel(JPanel mainWorkArea, UserAccountDirectory accountDirectory, UserAccount account) {
         initComponents();
+     this.mainWorkArea = mainWorkArea;
+        this.accountDirectory = accountDirectory;
+        this.userAccount = account;
+        this.courseOfferings = new ArrayList<>();
+        this.enrollments = new ArrayList<>();
     }
 
     /**
@@ -49,10 +71,25 @@ public class StudentDashboardJPanel extends javax.swing.JPanel {
         lblTitle.setText("Welcome Student");
 
         btnTranscript.setText("Transcript");
+        btnTranscript.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTranscriptActionPerformed(evt);
+            }
+        });
 
         btnTuitionPayment.setText("Tuition Payment");
+        btnTuitionPayment.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTuitionPaymentActionPerformed(evt);
+            }
+        });
 
         btnCourseRegistration.setText("Course Registration");
+        btnCourseRegistration.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCourseRegistrationActionPerformed(evt);
+            }
+        });
 
         btnGraduationAudit.setText("Graduation Audit");
         btnGraduationAudit.addActionListener(new java.awt.event.ActionListener() {
@@ -62,8 +99,18 @@ public class StudentDashboardJPanel extends javax.swing.JPanel {
         });
 
         btnLogout.setText("Logout");
+        btnLogout.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLogoutActionPerformed(evt);
+            }
+        });
 
         btnPersonProfile.setText("Profile");
+        btnPersonProfile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPersonProfileActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout controlPanelLayout = new javax.swing.GroupLayout(controlPanel);
         controlPanel.setLayout(controlPanelLayout);
@@ -135,7 +182,45 @@ public class StudentDashboardJPanel extends javax.swing.JPanel {
 
     private void btnGraduationAuditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGraduationAuditActionPerformed
         // TODO add your handling code here:
+        GraduationAuditJPanel panel = new GraduationAuditJPanel();
+        splitPane.setRightComponent(panel);
     }//GEN-LAST:event_btnGraduationAuditActionPerformed
+
+    private void btnCourseRegistrationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCourseRegistrationActionPerformed
+        // TODO add your handling code here:
+        CourseRegistrationJPanel panel = new CourseRegistrationJPanel(workArea, userAccount, courseOfferings, enrollments);
+        splitPane.setRightComponent(panel);
+    }//GEN-LAST:event_btnCourseRegistrationActionPerformed
+
+    private void btnTranscriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTranscriptActionPerformed
+        // TODO add your handling code here:
+         TranscriptJPanel panel = new TranscriptJPanel();
+        splitPane.setRightComponent(panel);
+    }//GEN-LAST:event_btnTranscriptActionPerformed
+
+    private void btnTuitionPaymentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTuitionPaymentActionPerformed
+        // TODO add your handling code here:
+         TuitionPaymentJPanel panel = new TuitionPaymentJPanel();
+        splitPane.setRightComponent(panel);
+    }//GEN-LAST:event_btnTuitionPaymentActionPerformed
+
+    private void btnPersonProfileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPersonProfileActionPerformed
+        // TODO add your handling code here:
+        Person person = userAccount.getProfile().getPerson();
+        java.awt.Window win = SwingUtilities.getWindowAncestor(this);
+        JFrame parentFrame = null;
+        if (win instanceof JFrame) parentFrame = (JFrame) win;
+        ProfileManagementDialog dialog = new ProfileManagementDialog(parentFrame, true, person);
+        dialog.setVisible(true);
+    }//GEN-LAST:event_btnPersonProfileActionPerformed
+
+    private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
+        // TODO add your handling code here:
+         JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
+        this.mainWorkArea.remove(this);
+        CardLayout layout = (CardLayout) this.mainWorkArea.getLayout();
+        layout.previous(this.mainWorkArea);
+    }//GEN-LAST:event_btnLogoutActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -135,8 +135,14 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtStudentName">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtStudentNameActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="txtCurrentBalance">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtCurrentBalanceActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblCurrentBalance">
       <Properties>
@@ -149,11 +155,17 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtOutstandingTuition">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtOutstandingTuitionActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnPayBill">
       <Properties>
         <Property name="text" type="java.lang.String" value="Pay Bill"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnPayBillActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblPaymentAmount">
       <Properties>

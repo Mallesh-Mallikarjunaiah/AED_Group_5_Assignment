@@ -3,18 +3,40 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
-
+import Model.Enrollment;
+import Model.CourseOffering;
+import Model.Student;
+import Model.User.UserAccount;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author MALLESH
  */
 public class TranscriptJPanel extends javax.swing.JPanel {
+    private UserAccount userAccount;
+    private Student student;
+    private ArrayList<Enrollment> allEnrollments;
+
 
     /**
      * Creates new form TranscriptJPanel
      */
-    public TranscriptJPanel() {
+    public TranscriptJPanel(UserAccount account, ArrayList<Enrollment> enrollments) {
         initComponents();
+        this.allEnrollments = new ArrayList<>();
+        this.userAccount = account;
+        this.student = (Student) account.getProfile();
+        this.allEnrollments = enrollments;
+
+        populateSemesterComboBox();
+        populateTranscriptTable(null);
+        calculateOverallGPA();
+    }
+
+    TranscriptJPanel() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     /**
@@ -49,8 +71,18 @@ public class TranscriptJPanel extends javax.swing.JPanel {
         lblSemester.setText("Semester");
 
         comboBoxSemester.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboBoxSemester.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBoxSemesterActionPerformed(evt);
+            }
+        });
 
         btnFilter.setText("Filter");
+        btnFilter.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFilterActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Transcript Display Table ");
 
@@ -157,6 +189,106 @@ public class TranscriptJPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtOverallGPAActionPerformed
 
+    private void comboBoxSemesterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSemesterActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_comboBoxSemesterActionPerformed
+
+    private void btnFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFilterActionPerformed
+        // TODO add your handling code here:
+        String selectedSemester = (String) comboBoxSemester.getSelectedItem();
+        populateTranscriptTable(selectedSemester);
+        calculateTermGPA(selectedSemester);
+    }//GEN-LAST:event_btnFilterActionPerformed
+    private void populateSemesterComboBox() {
+        Set<String> semesters = new HashSet<>();
+        for (Enrollment e : allEnrollments) {
+            if (e.isCompleted()) {
+                semesters.add(e.getCourseOffering().getSemester());
+            }
+        }
+        comboBoxSemester.removeAllItems();
+        for (String sem : semesters) {
+            comboBoxSemester.addItem(sem);
+        }
+    }
+
+    private void populateTranscriptTable(String semesterFilter) {
+        DefaultTableModel model = (DefaultTableModel) tblTranscript.getModel();
+        model.setRowCount(0);
+
+        for (Enrollment e : allEnrollments) {
+            if (e.isCompleted() && (semesterFilter == null || e.getCourseOffering().getSemester().equalsIgnoreCase(semesterFilter))) {
+                CourseOffering co = e.getCourseOffering();
+                Object[] row = new Object[7];
+                row[0] = co.getSemester();
+                row[1] = co.getCourse().getCourseID();
+                row[2] = co.getCourse().getName();
+                row[3] = co.getCourse().getCredits();
+                row[4] = e.getGrade();
+                row[5] = calculateGPAForGrade(e.getGrade());
+                row[6] = getStanding(e.getGrade());
+                model.addRow(row);
+            }
+        }
+    }
+
+    private double calculateGPAForGrade(String grade) {
+        switch (grade.toUpperCase()) {
+            case "A+": return 4.0;
+            case "A":  return 4.0;
+            case "A-": return 3.7;
+            case "B+": return 3.3;
+            case "B":  return 3.0;
+            case "B-": return 2.7;
+            case "C+": return 2.3;
+            case "C":  return 2.0;
+            case "D":  return 1.0;
+            case "F":  return 0.0;
+            default:   return 0.0;
+        }
+    }
+
+    private String getStanding(String grade) {
+        double gpa = calculateGPAForGrade(grade);
+        if (gpa >= 3.5) return "Excellent";
+        else if (gpa >= 3.0) return "Good";
+        else if (gpa >= 2.0) return "Average";
+        else return "At Risk";
+    }
+
+    private void calculateTermGPA(String semester) {
+        double totalPoints = 0;
+        int totalCredits = 0;
+
+        for (Enrollment e : allEnrollments) {
+            if (e.isCompleted() && e.getCourseOffering().getSemester().equalsIgnoreCase(semester)) {
+                double gradePoint = calculateGPAForGrade(e.getGrade());
+                int credits = e.getCourseOffering().getCourse().getCredits();
+                totalPoints += (gradePoint * credits);
+                totalCredits += credits;
+            }
+        }
+
+        double termGPA = totalCredits == 0 ? 0 : totalPoints / totalCredits;
+        txtTermGPA.setText(String.format("%.2f", termGPA));
+    }
+
+    private void calculateOverallGPA() {
+        double totalPoints = 0;
+        int totalCredits = 0;
+
+        for (Enrollment e : allEnrollments) {
+            if (e.isCompleted()) {
+                double gradePoint = calculateGPAForGrade(e.getGrade());
+                int credits = e.getCourseOffering().getCourse().getCredits();
+                totalPoints += (gradePoint * credits);
+                totalCredits += credits;
+            }
+        }
+
+        double overallGPA = totalCredits == 0 ? 0 : totalPoints / totalCredits;
+        txtOverallGPA.setText(String.format("%.2f", overallGPA));
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnFilter;

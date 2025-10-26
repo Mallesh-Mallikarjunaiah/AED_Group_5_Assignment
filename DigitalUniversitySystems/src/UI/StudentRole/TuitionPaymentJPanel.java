@@ -3,19 +3,91 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
+import Model.FinancialRecord;
+import Model.Student;
+import Model.User.UserAccount;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
  * @author MALLESH
  */
 public class TuitionPaymentJPanel extends javax.swing.JPanel {
+  private UserAccount userAccount;
+    private Student student;
+    private ArrayList<FinancialRecord> paymentHistory;
+    private double currentBalance;
+    private double outstandingBalance;
+
 
     /**
      * Creates new form TuitionPaymentJPanel
      */
     public TuitionPaymentJPanel() {
-        initComponents();
+      this.paymentHistory = new ArrayList<>();
+        initDemoData();
+        populatePaymentTable();
+        refreshBalances();
     }
+         public TuitionPaymentJPanel(UserAccount account, ArrayList<FinancialRecord> records) {
+        initComponents();
+        this.userAccount = account;
+        this.student = (Student) account.getProfile();
+        this.paymentHistory = records != null ? records : new ArrayList<>();
+        txtStudentName.setText(student.getPerson().getName());
+        calculateBalances();
+        populatePaymentTable();
+        refreshBalances();
+         }
+         
+      private void initDemoData() {
+        // Fake data for testing UI
+        txtStudentName.setText("John Doe");
+        this.currentBalance = 2000.00;
+        this.outstandingBalance = 6000.00;
+        paymentHistory.add(new FinancialRecord("TXN-1001", null, 3000, "BILLED", "Fall 2025", "2025-09-05"));
+        paymentHistory.add(new FinancialRecord("TXN-1002", null, 1000, "PAID", "Fall 2025", "2025-09-20"));
+    }
+
+    private void calculateBalances() {
+        double billed = 0, paid = 0;
+        for (FinancialRecord fr : paymentHistory) {
+            if (fr.getType().equalsIgnoreCase("BILLED")) billed += fr.getAmount();
+            if (fr.getType().equalsIgnoreCase("PAID")) paid += fr.getAmount();
+        }
+        outstandingBalance = billed - paid;
+        currentBalance = paid;
+    }
+
+    private void refreshBalances() {
+        txtCurrentBalance.setText(String.format("$%.2f", currentBalance));
+        txtOutstandingTuition.setText(String.format("$%.2f", outstandingBalance));
+    }
+
+    private void populatePaymentTable() {
+        DefaultTableModel model = (DefaultTableModel) tblPaymentHistory.getModel();
+        model.setRowCount(0);
+        for (FinancialRecord fr : paymentHistory) {
+            Object[] row = new Object[6];
+            row[0] = fr.getDate();
+            row[1] = fr.getTransactionID();
+            row[2] = fr.getType();
+            row[3] = fr.getSemester();
+            row[4] = String.format("$%.2f", fr.getAmount());
+            row[5] = fr.getType().equalsIgnoreCase("PAID") ? String.format("$%.2f", currentBalance) : "-";
+            model.addRow(row);
+        }
+    }
+
+    private String getCurrentDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(new Date());
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -52,11 +124,34 @@ public class TuitionPaymentJPanel extends javax.swing.JPanel {
 
         lblStudentName.setText("Student Name:");
 
+        txtStudentName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtStudentNameActionPerformed(evt);
+            }
+        });
+
+        txtCurrentBalance.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtCurrentBalanceActionPerformed(evt);
+            }
+        });
+
         lblCurrentBalance.setText("Current Balance:");
 
         lblOutstandingBalance.setText("Outstanding Tuition:");
 
+        txtOutstandingTuition.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtOutstandingTuitionActionPerformed(evt);
+            }
+        });
+
         btnPayBill.setText("Pay Bill");
+        btnPayBill.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPayBillActionPerformed(evt);
+            }
+        });
 
         lblPaymentAmount.setText("Payment Amount:");
 
@@ -157,6 +252,60 @@ public class TuitionPaymentJPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtPaymentAmountActionPerformed
 
+    private void txtStudentNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtStudentNameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtStudentNameActionPerformed
+
+    private void txtCurrentBalanceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCurrentBalanceActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtCurrentBalanceActionPerformed
+
+    private void txtOutstandingTuitionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtOutstandingTuitionActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtOutstandingTuitionActionPerformed
+
+    private void btnPayBillActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPayBillActionPerformed
+        // TODO add your handling code here:
+       try {
+            double paymentAmount = Double.parseDouble(txtPaymentAmount.getText().trim());
+            if (paymentAmount <= 0) {
+                JOptionPane.showMessageDialog(this, "Enter a valid payment amount.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (paymentAmount > outstandingBalance) {
+                JOptionPane.showMessageDialog(this, "Payment exceeds outstanding tuition.", "Warning", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Update balances
+            outstandingBalance -= paymentAmount;
+            currentBalance += paymentAmount;
+
+            // Add new FinancialRecord
+            String transactionId = "TXN-" + System.currentTimeMillis();
+            FinancialRecord newPayment = new FinancialRecord(
+                    transactionId,
+                    student,
+                    paymentAmount,
+                    "PAID",
+                    "Fall 2025", // You can replace with current semester dynamically
+                    getCurrentDate()
+            );
+
+            paymentHistory.add(newPayment);
+
+            JOptionPane.showMessageDialog(this, "Payment successful! Thank you.", "Payment Confirmation", JOptionPane.INFORMATION_MESSAGE);
+            populatePaymentTable();
+            refreshBalances();
+            txtPaymentAmount.setText("");
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter a numeric amount.", "Error", JOptionPane.ERROR_MESSAGE);
+        }                           
+
+    }//GEN-LAST:event_btnPayBillActionPerformed
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnPayBill;

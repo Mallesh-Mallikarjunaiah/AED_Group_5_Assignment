@@ -3,20 +3,88 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
-
+import Model.Enrollment;
+import Model.Student;
+import Model.CourseOffering;
+import java.util.ArrayList;
+import javax.swing.JPanel;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author MALLESH
  */
 public class GraduationAuditJPanel extends javax.swing.JPanel {
+    private JPanel mainWorkArea;
+    private Student student;
+    private ArrayList<Enrollment> completedEnrollments;
 
+    private static final int TOTAL_REQUIRED_CREDITS = 32;
+    private static final String MANDATORY_COURSE_ID = "INFO 5100";
     /**
      * Creates new form GraduationAuditJPanel
      */
-    public GraduationAuditJPanel() {
+    public GraduationAuditJPanel(JPanel mainWorkArea, Student student, ArrayList<Enrollment> completedEnrollments) {
         initComponents();
+        initComponents();
+        this.mainWorkArea = mainWorkArea;
+        this.student = student;
+        this.completedEnrollments = completedEnrollments;
+
+        populateStudentInfo();
+        populateCoursesCompletedTable();
+        calculateCreditSummary();
     }
 
+    GraduationAuditJPanel() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+        private void populateStudentInfo() {
+        txtName.setText(student.getPerson().getName());
+        txtUniversityID.setText(student.getPerson().getEmail()); // assuming email as ID
+        txtProgram.setText(student.getDepartment().toString());
+    }
+        private void populateCoursesCompletedTable() {
+        DefaultTableModel model = (DefaultTableModel) tblCoursesCompleted.getModel();
+        model.setRowCount(0);
+
+        for (Enrollment e : completedEnrollments) {
+            if (e.getStudent().equals(student) && e.isCompleted()) {
+                CourseOffering co = e.getCourseOffering();
+                Object[] row = new Object[5];
+                row[0] = co.getCourse().getCourseID();
+                row[1] = co.getCourse().getName();
+                row[2] = co.getCourse().getCredits();
+                row[3] = co.getSemester();
+                row[4] = e.getGrade() != null ? e.getGrade() : "In Progress";
+                model.addRow(row);
+            }
+        }
+    }
+         private void calculateCreditSummary() {
+        int totalEarned = 0;
+        boolean mandatoryCompleted = false;
+
+        for (Enrollment e : completedEnrollments) {
+            if (e.getStudent().equals(student) && e.isCompleted()) {
+                totalEarned += e.getCourseOffering().getCourse().getCredits();
+
+                // Check mandatory course
+                if (e.getCourseOffering().getCourse().getCourseID().equalsIgnoreCase(MANDATORY_COURSE_ID)) {
+                    mandatoryCompleted = true;
+                }
+            }
+        }
+
+        // Populate summary fields
+        txtTotalCreditEarned.setText(String.valueOf(totalEarned));
+        txtMandatory.setText(mandatoryCompleted ? "Completed" : "Pending");
+
+        int extraCredits = Math.max(0, totalEarned - 4); // excluding core course
+        jTextField6.setText(String.valueOf(extraCredits));
+
+        lblTotalCreditsRequired.setText("Total Credits Required: " + TOTAL_REQUIRED_CREDITS + " hours");
+    }
+         
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -231,26 +299,37 @@ public class GraduationAuditJPanel extends javax.swing.JPanel {
 
     private void txtTotalCreditEarnedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTotalCreditEarnedActionPerformed
         // TODO add your handling code here:
+        calculateCreditSummary();
     }//GEN-LAST:event_txtTotalCreditEarnedActionPerformed
 
     private void txtMandatoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMandatoryActionPerformed
         // TODO add your handling code here:
+         txtMandatory.setEditable(false);
+    txtMandatory.setToolTipText("Auto-filled: Completion status of INFO 5100");
     }//GEN-LAST:event_txtMandatoryActionPerformed
 
     private void jTextField6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField6ActionPerformed
         // TODO add your handling code here:
+        jTextField6.setEditable(false);
+    jTextField6.setToolTipText("Auto-calculated credits exceeding the core course");
     }//GEN-LAST:event_jTextField6ActionPerformed
 
     private void txtNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNameActionPerformed
         // TODO add your handling code here:
+         txtName.setEditable(false);
+    txtName.setToolTipText("Student name fetched from profile");
     }//GEN-LAST:event_txtNameActionPerformed
 
     private void txtUniversityIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtUniversityIDActionPerformed
         // TODO add your handling code here:
+         txtUniversityID.setEditable(false);
+    txtUniversityID.setToolTipText("Student university ID (read-only)");
     }//GEN-LAST:event_txtUniversityIDActionPerformed
 
     private void txtProgramActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtProgramActionPerformed
         // TODO add your handling code here:
+        txtProgram.setEditable(false);
+    txtProgram.setToolTipText("Program or department (read-only)");
     }//GEN-LAST:event_txtProgramActionPerformed
 
 
