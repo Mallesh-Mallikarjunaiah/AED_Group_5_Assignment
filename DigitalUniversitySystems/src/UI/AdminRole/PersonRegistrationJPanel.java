@@ -177,14 +177,57 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
 
     private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
         // TODO add your handling code here:
-        String name = this.txtName.getText();
-        String contactNum = this.txtContactNumber.getText();
-        String email = this.txtEmail.getText();
-        String un = this.txtUserName.getText();
+        String name = this.txtName.getText().trim();
+        String contactNum = this.txtContactNumber.getText().trim();
+        String email = this.txtEmail.getText().trim();
+        String un = this.txtUserName.getText().trim();
         String pw = this.txtPassword.getText();
-        ProfileEnum profile = ProfileEnum.fromProfile(this.comboxRole.getSelectedItem().toString());
-        Department dept =  Department.valueOf(this.deptComboBox.getSelectedItem().toString());
-        
+
+        // Basic required-field validation
+        if (name.isEmpty() || un.isEmpty() || pw.isEmpty() || email.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in Name, Username, Password and Email fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Check for duplicate username or email
+        for (Model.User.UserAccount ua : this.accountDirectory.getUserAccountList()) {
+            if (ua.getUsername() != null && ua.getUsername().equalsIgnoreCase(un)) {
+                JOptionPane.showMessageDialog(this, "Username already exists. Please choose another username.", "Duplicate Username", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String existingEmail = ua.getProfile().getPerson().getEmail();
+            if (existingEmail != null && existingEmail.equalsIgnoreCase(email)) {
+                JOptionPane.showMessageDialog(this, "E-mail already registered. Please use a different e-mail.", "Duplicate E-mail", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        // Determine profile and department safely
+        Object roleSelection = this.comboxRole.getSelectedItem();
+        if (roleSelection == null) {
+            JOptionPane.showMessageDialog(this, "Please select a role.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        ProfileEnum profile = ProfileEnum.fromProfile(roleSelection.toString());
+        if (profile == null) {
+            JOptionPane.showMessageDialog(this, "Invalid role selected.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Object deptSelection = this.deptComboBox.getSelectedItem();
+        if (deptSelection == null) {
+            JOptionPane.showMessageDialog(this, "Please select a department.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Department dept = null;
+        try {
+            dept = Department.valueOf(deptSelection.toString());
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Invalid department selected.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         this.accountDirectory.newUserAccount(name, contactNum, un, pw, profile, dept, email);
         
         JOptionPane.showMessageDialog(this, "Account Created Successfully");

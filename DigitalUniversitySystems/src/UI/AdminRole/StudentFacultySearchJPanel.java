@@ -26,6 +26,8 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
      */
     public StudentFacultySearchJPanel() {
         initComponents();
+        // ensure department combo and field states are initialized when created without an accountDirectory
+        initializeComponents();
     }
 
     private void initializeComponents() {
@@ -46,6 +48,13 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
     }
 
     private void populateTable() {
+        if (accountDirectory == null) {
+            // No data source available; clear table and return
+            DefaultTableModel empty = (DefaultTableModel) tblSearch.getModel();
+            empty.setRowCount(0);
+            return;
+        }
+
         DefaultTableModel model = (DefaultTableModel) tblSearch.getModel();
         model.setRowCount(0);
 
@@ -108,16 +117,32 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
         txtAcademicStatus = new javax.swing.JTextField();
         lblAcademicStatus = new javax.swing.JLabel();
         btnSave = new javax.swing.JButton();
+        txtSearchField = new javax.swing.JTextField();
 
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
         setMinimumSize(new java.awt.Dimension(600, 465));
 
         btnSearchID.setText("Search ID");
+        btnSearchID.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchIDActionPerformed(evt);
+            }
+        });
 
         btnSearchName.setText("Search Name");
+        btnSearchName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchNameActionPerformed(evt);
+            }
+        });
 
         btnSearchDepartment.setText("Search Department");
+        btnSearchDepartment.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchDepartmentActionPerformed(evt);
+            }
+        });
 
         tblSearch.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -178,18 +203,26 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
             }
         });
 
+        txtSearchField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtSearchFieldActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(58, 58, 58)
+                .addContainerGap()
+                .addComponent(txtSearchField)
+                .addGap(18, 18, 18)
                 .addComponent(btnSearchID)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 88, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
                 .addComponent(btnSearchName)
-                .addGap(74, 74, 74)
+                .addGap(18, 18, 18)
                 .addComponent(btnSearchDepartment)
-                .addGap(68, 68, 68))
+                .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jScrollPane1)
@@ -199,7 +232,7 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnView)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 91, Short.MAX_VALUE)
                         .addComponent(btnEdit)
                         .addGap(88, 88, 88)
                         .addComponent(btnDelete))
@@ -228,7 +261,8 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSearchID)
                     .addComponent(btnSearchName)
-                    .addComponent(btnSearchDepartment))
+                    .addComponent(btnSearchDepartment)
+                    .addComponent(txtSearchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -353,7 +387,14 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
 
         if (selectedAccount.getProfile() instanceof Faculty) {
             Faculty faculty = (Faculty) selectedAccount.getProfile();
-            faculty.setDepartment(Department.valueOf(comboxDepartment.getSelectedItem().toString()));
+            Object sel = comboxDepartment.getSelectedItem();
+            if (sel != null) {
+                try {
+                    faculty.setDepartment(Department.valueOf(sel.toString()));
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid department selected.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         }
 
         selectedAccount.getProfile().getPerson().setEmail(txtEmail.getText());
@@ -367,11 +408,136 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
         btnSave.setEnabled(false);
         btnEdit.setEnabled(false);
         btnDelete.setEnabled(true);
+        btnView.setEnabled(true);
 
         selectedAccount = null;
 
         JOptionPane.showMessageDialog(this, "Record updated successfully");
     }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void txtSearchFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSearchFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtSearchFieldActionPerformed
+
+    private void btnSearchIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchIDActionPerformed
+        if (accountDirectory == null) {
+            JOptionPane.showMessageDialog(this, "No data available to search.");
+            return;
+        }
+
+        String query = txtSearchField.getText().trim();
+        if (query.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter an ID to search.");
+            return;
+        }
+
+        int id;
+        try {
+            id = Integer.parseInt(query);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid numeric ID.");
+            return;
+        }
+
+        java.util.List<UserAccount> matches = new java.util.ArrayList<>();
+        for (UserAccount account : accountDirectory.getUserAccountList()) {
+            if (account.getProfile() instanceof Student || account.getProfile() instanceof Faculty) {
+                if (account.getProfile().getPerson().getUNID() == id) {
+                    matches.add(account);
+                }
+            }
+        }
+
+        populateTableWithAccounts(matches);
+        clearFields();
+        selectedAccount = null;
+    }//GEN-LAST:event_btnSearchIDActionPerformed
+
+    private void btnSearchNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchNameActionPerformed
+        if (accountDirectory == null) {
+            JOptionPane.showMessageDialog(this, "No data available to search.");
+            return;
+        }
+
+        String query = txtSearchField.getText().trim();
+        if (query.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a name to search.");
+            return;
+        }
+
+        String qLower = query.toLowerCase();
+        java.util.List<UserAccount> matches = new java.util.ArrayList<>();
+        for (UserAccount account : accountDirectory.getUserAccountList()) {
+            if (account.getProfile() instanceof Student || account.getProfile() instanceof Faculty) {
+                String name = account.getProfile().getPerson().getName();
+                if (name != null && name.toLowerCase().contains(qLower)) {
+                    matches.add(account);
+                }
+            }
+        }
+
+        populateTableWithAccounts(matches);
+        clearFields();
+        selectedAccount = null;
+    }//GEN-LAST:event_btnSearchNameActionPerformed
+
+    private void btnSearchDepartmentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchDepartmentActionPerformed
+        if (accountDirectory == null) {
+            JOptionPane.showMessageDialog(this, "No data available to search.");
+            return;
+        }
+
+        String query = txtSearchField.getText().trim();
+        if (query.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a department to search.");
+            return;
+        }
+
+        String qLower = query.toLowerCase();
+        java.util.List<UserAccount> matches = new java.util.ArrayList<>();
+        for (UserAccount account : accountDirectory.getUserAccountList()) {
+            if (account.getProfile() instanceof Student) {
+                Student s = (Student) account.getProfile();
+                if (s.getDepartment() != null) {
+                    String deptStr = s.getDepartment().toString();
+                    if (deptStr != null && deptStr.toLowerCase().contains(qLower)) matches.add(account);
+                }
+            } else if (account.getProfile() instanceof Faculty) {
+                Faculty f = (Faculty) account.getProfile();
+                if (f.getDepartment() != null) {
+                    String deptStr = f.getDepartment().toString();
+                    if (deptStr != null && deptStr.toLowerCase().contains(qLower)) matches.add(account);
+                }
+            }
+        }
+
+        populateTableWithAccounts(matches);
+        clearFields();
+        selectedAccount = null;
+    }//GEN-LAST:event_btnSearchDepartmentActionPerformed
+
+    // Helper: populate table rows from a list of UserAccount (Student/Faculty only)
+    private void populateTableWithAccounts(java.util.List<UserAccount> accounts) {
+        DefaultTableModel model = (DefaultTableModel) tblSearch.getModel();
+        model.setRowCount(0);
+
+        for (UserAccount account : accounts) {
+            if (!(account.getProfile() instanceof Student) && !(account.getProfile() instanceof Faculty)) continue;
+            Object[] row = new Object[7];
+            row[0] = account.getProfile().getPerson().getUNID();
+            row[1] = account.getProfile().getPerson().getName();
+            row[2] = account.getProfile() instanceof Student ? "Student" : "Faculty";
+            if (account.getProfile() instanceof Student) {
+                row[3] = ((Student) account.getProfile()).getDepartment();
+            } else {
+                row[3] = ((Faculty) account.getProfile()).getDepartment();
+            }
+            row[4] = account.getProfile().getPerson().getEmail();
+            row[5] = account.getProfile().getPerson().getContactNumber();
+            row[6] = account.getProfile().isActive() ? "YES" : "NO";
+            model.addRow(row);
+        }
+    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -392,5 +558,6 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
     private javax.swing.JTextField txtAcademicStatus;
     private javax.swing.JTextField txtContactNumber;
     private javax.swing.JTextField txtEmail;
+    private javax.swing.JTextField txtSearchField;
     // End of variables declaration//GEN-END:variables
 }
