@@ -243,7 +243,7 @@ public class AdminDashboardJPanel extends javax.swing.JPanel {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAnalyticsDashboard;
+        private javax.swing.JButton btnAnalyticsDashboard;
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton btnPersonProfile;
     private javax.swing.JButton btnPersonRegistration;
