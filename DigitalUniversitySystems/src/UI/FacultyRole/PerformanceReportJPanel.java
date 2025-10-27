@@ -1,14 +1,19 @@
+package UI.FacultyRole;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-package UI.FacultyRole;
+
 import Model.*;
 import Model.Faculty;
 import Model.User.UserAccount;
+import Model.accesscontrol.ConfigureJTable; // Central Data Store
+import Model.accesscontrol.GradeCalculator; // GPA logic
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
 import java.util.*;
+import java.util.stream.Collectors;
 /**
  *
  * @author talha
@@ -17,11 +22,13 @@ public class PerformanceReportJPanel extends javax.swing.JPanel {
     private JPanel workArea;
     private UserAccount userAccount;
     private Faculty faculty;
-    private Map<String, List<CoursePerformanceData>> semesterCoursesMap;
+    private Map<String, List<CoursePerformanceData>> semesterCoursesMap; // Semester -> List of Performance Summaries
+    
+    // Inner class to hold calculated data for report generation
     private class CoursePerformanceData {
         CourseOffering courseOffering;
         double averageGrade;
-        Map<String, Integer> gradeDistribution; // Letter grade -> count
+        Map<String, Long> gradeDistribution; // Letter grade -> count
         int enrollmentCount;
         
         public CoursePerformanceData(CourseOffering courseOffering) {
@@ -31,94 +38,98 @@ public class PerformanceReportJPanel extends javax.swing.JPanel {
             this.enrollmentCount = 0;
         }
     }
-    /**
-     * Creates new form PerformanceReportJPanel
-     */
+    
     public PerformanceReportJPanel(JPanel workArea, UserAccount userAccount) {
         this.workArea = workArea;
         this.userAccount = userAccount;
         this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
-        initializeMockData();
+        
+        loadFacultyData(); 
         populateSemesterDropdown();
+        
         cmbSelectSemester.addActionListener(e -> updateCourseDropdown());
         cmbSelectCourse.addActionListener(e -> displayPerformanceReport());
-        
     }
     
-    private void initializeMockData() {
-        semesterCoursesMap = new HashMap<>();
+    /**
+     * Loads the faculty's assigned courses and enrollments from the central store.
+     * This replaces the old hardcoded initializeMockData().
+     */
+    private void loadFacultyData() {
+        int facultyUNID = faculty.getPerson().getUNID();
         
-        // Fall 2024 courses
-        List<CoursePerformanceData> fall2024Courses = new ArrayList<>();
+        // 1. Get all CourseOfferings assigned to this faculty
+        List<CourseOffering> assignedOfferings = ConfigureJTable.courseOfferingList.stream()
+            .filter(o -> o.getFaculty() != null && o.getFaculty().getPerson().getUNID() == facultyUNID)
+            .collect(Collectors.toList());
         
-        Course course1 = new Course("CS5010", "Program Design Paradigm", 4);
-        Course course2 = new Course("CS5800", "Algorithms", 4);
-        
-        CourseOffering offering1 = new CourseOffering(course1, "Fall 2024", faculty, 60, "Mon/Wed 2:00-3:30 PM");
-        CourseOffering offering2 = new CourseOffering(course2, "Fall 2024", faculty, 50, "Tue/Thu 10:00-11:30 AM");
-        
-        // CS5010 Performance Data
-        CoursePerformanceData perf1 = new CoursePerformanceData(offering1);
-        perf1.averageGrade = 85.5;
-        perf1.enrollmentCount = 45;
-        perf1.gradeDistribution.put("A", 12);
-        perf1.gradeDistribution.put("A-", 8);
-        perf1.gradeDistribution.put("B+", 10);
-        perf1.gradeDistribution.put("B", 8);
-        perf1.gradeDistribution.put("B-", 4);
-        perf1.gradeDistribution.put("C+", 2);
-        perf1.gradeDistribution.put("C", 1);
-        
-        // CS5800 Performance Data
-        CoursePerformanceData perf2 = new CoursePerformanceData(offering2);
-        perf2.averageGrade = 78.3;
-        perf2.enrollmentCount = 38;
-        perf2.gradeDistribution.put("A", 8);
-        perf2.gradeDistribution.put("A-", 6);
-        perf2.gradeDistribution.put("B+", 7);
-        perf2.gradeDistribution.put("B", 9);
-        perf2.gradeDistribution.put("B-", 5);
-        perf2.gradeDistribution.put("C+", 2);
-        perf2.gradeDistribution.put("C", 1);
-        
-        fall2024Courses.add(perf1);
-        fall2024Courses.add(perf2);
-        
-        semesterCoursesMap.put("Fall 2024", fall2024Courses);
-        
-        // Spring 2025 courses
-        List<CoursePerformanceData> spring2025Courses = new ArrayList<>();
-        
-        Course course3 = new Course("CS6220", "Data Mining", 3);
-        CourseOffering offering3 = new CourseOffering(course3, "Spring 2025", faculty, 40, "Mon/Wed 6:00-7:30 PM");
-        
-        CoursePerformanceData perf3 = new CoursePerformanceData(offering3);
-        perf3.averageGrade = 82.7;
-        perf3.enrollmentCount = 35;
-        perf3.gradeDistribution.put("A", 10);
-        perf3.gradeDistribution.put("A-", 7);
-        perf3.gradeDistribution.put("B+", 8);
-        perf3.gradeDistribution.put("B", 6);
-        perf3.gradeDistribution.put("B-", 3);
-        perf3.gradeDistribution.put("C+", 1);
-        
-        spring2025Courses.add(perf3);
-        
-        semesterCoursesMap.put("Spring 2025", spring2025Courses);
+        // 2. Map Performance Data: Group by semester and calculate current metrics
+        semesterCoursesMap = assignedOfferings.stream()
+            .map(offering -> calculatePerformanceMetrics(offering))
+            .collect(Collectors.groupingBy(
+                perf -> perf.courseOffering.getSemester(),
+                Collectors.mapping(perf -> perf, Collectors.toList())
+            ));
     }
 
     /**
-     * Populate semester dropdown
+     * Calculates GPA, Distribution, and Count for a single Course Offering.
+     */
+    private CoursePerformanceData calculatePerformanceMetrics(CourseOffering offering) {
+        CoursePerformanceData perfData = new CoursePerformanceData(offering);
+        
+        // Filter active and graded enrollments for this specific offering
+        List<Enrollment> gradedEnrollments = ConfigureJTable.enrollmentList.stream()
+            .filter(e -> e.getCourseOffering() == offering && e.getGrade() != null && !e.getGrade().equalsIgnoreCase("N/A"))
+            .collect(Collectors.toList());
+
+        perfData.enrollmentCount = offering.getEnrolledCount();
+        
+        if (gradedEnrollments.isEmpty()) {
+            return perfData;
+        }
+        
+        // Calculate GPA sum and distribution
+        double totalQualityPoints = 0.0;
+        int totalCredits = 0;
+        
+        // Calculate distribution and quality points
+        Map<String, Long> gradeDistribution = new HashMap<>();
+        
+        for (Enrollment e : gradedEnrollments) {
+            String grade = e.getGrade();
+            double gpa = GradeCalculator.letterGradeToGPA(grade);
+            int credits = e.getCourseOffering().getCourse().getCredits();
+            
+            if (gpa >= 0) {
+                totalQualityPoints += gpa * credits;
+                totalCredits += credits;
+                
+                // Tally grade distribution
+                gradeDistribution.put(grade, gradeDistribution.getOrDefault(grade, 0L) + 1);
+            }
+        }
+        
+        perfData.averageGrade = totalCredits > 0 ? totalQualityPoints / totalCredits : 0.0;
+        perfData.gradeDistribution = gradeDistribution;
+        
+        return perfData;
+    }
+
+    /**
+     * Populate semester dropdown (FIX: Now uses live data keys)
      */
     private void populateSemesterDropdown() {
         cmbSelectSemester.removeAllItems();
         cmbSelectSemester.addItem("-- Select Semester --");
         
-        for (String semester : semesterCoursesMap.keySet()) {
-            cmbSelectSemester.addItem(semester);
-        }
+        // FIX: The dropdown now correctly pulls the unique semester names from the map keys
+        semesterCoursesMap.keySet().stream()
+            .forEach(cmbSelectSemester::addItem);
     }
+
+    // ... (updateCourseDropdown and displayPerformanceReport remain largely the same, relying on the updated semesterCoursesMap structure) ...
 
     /**
      * Update course dropdown based on selected semester
@@ -165,7 +176,7 @@ public class PerformanceReportJPanel extends javax.swing.JPanel {
             CoursePerformanceData perfData = courses.get(courseIndex - 1);
             
             // Display average grade
-            txtAvgGrade.setText(String.format("%.2f%%", perfData.averageGrade));
+            txtAvgGrade.setText(String.format("%.2f (GPA)", perfData.averageGrade));
             
             // Display grade distribution
             StringBuilder distribution = new StringBuilder();
@@ -173,7 +184,7 @@ public class PerformanceReportJPanel extends javax.swing.JPanel {
             
             for (String grade : gradeOrder) {
                 if (perfData.gradeDistribution.containsKey(grade)) {
-                    int count = perfData.gradeDistribution.get(grade);
+                    long count = perfData.gradeDistribution.get(grade);
                     if (distribution.length() > 0) distribution.append(", ");
                     distribution.append(grade).append(": ").append(count);
                 }

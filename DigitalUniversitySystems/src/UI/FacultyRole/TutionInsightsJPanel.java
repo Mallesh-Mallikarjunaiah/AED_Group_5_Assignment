@@ -3,11 +3,14 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.FacultyRole;
+
 import Model.*;
 import Model.Faculty;
 import Model.User.UserAccount;
+import Model.accesscontrol.ConfigureJTable; // Central Data Source
 import javax.swing.JPanel;
 import java.util.*;
+import java.util.stream.Collectors;
 /**
  *
  * @author talha
@@ -16,24 +19,26 @@ public class TutionInsightsJPanel extends javax.swing.JPanel {
     private JPanel workArea;
     private UserAccount userAccount;
     private Faculty faculty;
-    private Map<String, TuitionData> courseTuitionMap;
+    // Map CourseID+Name -> TuitionData (for quick lookup)
+    private Map<String, TuitionData> courseTuitionMap; 
     private static final double TUITION_PER_CREDIT = 1500.0;
-    /**
-     * Creates new form TutionInsightsJPanel
-     */
+    
+    // Inner class to hold calculated results based on a live CourseOffering
     private class TuitionData {
         CourseOffering courseOffering;
         int totalStudents;
         double totalTuitionCollected;
         
-        public TuitionData(CourseOffering courseOffering, int totalStudents) {
+        public TuitionData(CourseOffering courseOffering) {
             this.courseOffering = courseOffering;
-            this.totalStudents = totalStudents;
+            // Get live enrolled count from the central CourseOffering object
+            this.totalStudents = courseOffering.getEnrolledCount(); 
             this.totalTuitionCollected = calculateTuition();
         }
         
         private double calculateTuition() {
             int credits = courseOffering.getCourse().getCredits();
+            // Assuming all enrolled students paid the full tuition amount
             return totalStudents * credits * TUITION_PER_CREDIT;
         }
     }
@@ -43,7 +48,8 @@ public class TutionInsightsJPanel extends javax.swing.JPanel {
         this.userAccount = userAccount;
         this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
-        initializeMockData();
+        
+        initializeLiveData(); // FIX: Use live data setup
         populateCourseDropdown();
         
         // Add listener
@@ -51,28 +57,23 @@ public class TutionInsightsJPanel extends javax.swing.JPanel {
     }
     
     /**
-     * Initialize mock tuition data for faculty's courses
+     * Initializes tuition insights by pulling live enrollment and course data
+     * from ConfigureJTable.
      */
-    private void initializeMockData() {
+    private void initializeLiveData() {
         courseTuitionMap = new HashMap<>();
+        int facultyUNID = faculty.getPerson().getUNID();
         
-        // Create mock courses with enrollment data
-        Course course1 = new Course("CS5010", "Program Design Paradigm", 4);
-        Course course2 = new Course("CS5800", "Algorithms", 4);
-        Course course3 = new Course("CS6220", "Data Mining", 3);
-        
-        CourseOffering offering1 = new CourseOffering(course1, "Fall 2024", faculty, 60, "Mon/Wed 2:00-3:30 PM");
-        CourseOffering offering2 = new CourseOffering(course2, "Fall 2024", faculty, 50, "Tue/Thu 10:00-11:30 AM");
-        CourseOffering offering3 = new CourseOffering(course3, "Spring 2025", faculty, 40, "Mon/Wed 6:00-7:30 PM");
-        
-        // Create tuition data with enrollment numbers
-        TuitionData tuition1 = new TuitionData(offering1, 45); // 45 students enrolled
-        TuitionData tuition2 = new TuitionData(offering2, 38); // 38 students enrolled
-        TuitionData tuition3 = new TuitionData(offering3, 35); // 35 students enrolled
-        
-        courseTuitionMap.put("CS5010 - Program Design Paradigm", tuition1);
-        courseTuitionMap.put("CS5800 - Algorithms", tuition2);
-        courseTuitionMap.put("CS6220 - Data Mining", tuition3);
+        // Filter ConfigureJTable's course list by the current faculty's UNID
+        ConfigureJTable.courseOfferingList.stream()
+            .filter(o -> o.getFaculty() != null && o.getFaculty().getPerson().getUNID() == facultyUNID)
+            .forEach(offering -> {
+                // Create the data object using the live CourseOffering
+                TuitionData tuitionData = new TuitionData(offering);
+                String courseKey = offering.getCourseID() + " - " + offering.getCourseName();
+                
+                courseTuitionMap.put(courseKey, tuitionData);
+            });
     }
 
     /**
@@ -82,6 +83,7 @@ public class TutionInsightsJPanel extends javax.swing.JPanel {
         cmbSelectCourse.removeAllItems();
         cmbSelectCourse.addItem("-- Select Course --");
         
+        // Populate dropdown with the live courses assigned to the faculty
         for (String courseName : courseTuitionMap.keySet()) {
             cmbSelectCourse.addItem(courseName);
         }
@@ -106,6 +108,8 @@ public class TutionInsightsJPanel extends javax.swing.JPanel {
             
             // Display total tuition fee collected
             txtTotalFee.setText(String.format("$%,.2f", tuitionData.totalTuitionCollected));
+        } else {
+            clearFields();
         }
     }
 
@@ -116,6 +120,7 @@ public class TutionInsightsJPanel extends javax.swing.JPanel {
         txtTotalStudents.setText("");
         txtTotalFee.setText("");
     }
+
 
     /**
      * This method is called from within the constructor to initialize the form.

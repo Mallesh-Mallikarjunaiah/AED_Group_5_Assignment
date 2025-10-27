@@ -184,6 +184,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Compute Final Grade"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnComputeGradeActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnSaveGrade">
       <Properties>

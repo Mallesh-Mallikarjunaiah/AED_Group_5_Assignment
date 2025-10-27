@@ -3,13 +3,17 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.FacultyRole;
+
 import Model.*;
 import Model.Faculty;
 import Model.User.UserAccount;
+import Model.accesscontrol.ConfigureJTable;
+import Model.accesscontrol.GradeCalculator; // Use the provided GradeCalculator
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.util.*;
+import java.util.stream.Collectors;
 /**
  *
  * @author talha
@@ -22,8 +26,10 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
     private Map<String, List<StudentGradeData>> courseStudentsMap; // CourseID -> List of students
     private CourseOffering selectedCourseOffering;
     
+    // Inner class to hold temporary student data for grading session
     private class StudentGradeData {
         Student student;
+        // Scores are stored as doubles, initialized to 0.0
         double assignmentScore;
         double midtermScore;
         double finalScore;
@@ -39,16 +45,14 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
             this.letterGrade = "N/A";
         }
     }    
-    /**
-     * Creates new form StudentGradingJPanel
-     */
+    
     public StudentGradingJPanel(JPanel workArea, UserAccount userAccount) {
         this.workArea = workArea;
         this.userAccount = userAccount;
         this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
         
-        initializeMockData();
+        loadFacultyData(); // Load courses and students from ConfigureJTable
         populateCourseDropdown();
         
         // Add listeners
@@ -56,47 +60,33 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
         btnComputeGrade.addActionListener(e -> computeFinalGrades());
         btnRankStudents.addActionListener(e -> rankStudents());
         btnViewTranscriptSummary.addActionListener(e -> viewTranscriptSummary());
+        btnSaveGrade.addActionListener(e -> saveGrades());
     }
+    
     /**
-     * Initialize mock data for courses and enrolled students
+     * Loads the faculty's assigned courses from the central store and 
+     * simulates loading enrolled students (based on ConfigureJTable.enrollmentList).
      */
-    private void initializeMockData() {
-        facultyCourses = new ArrayList<>();
+    private void loadFacultyData() {
+        // 1. Get courses assigned to this faculty
+        int facultyUNID = faculty.getPerson().getUNID();
+        facultyCourses = ConfigureJTable.courseOfferingList.stream()
+            .filter(o -> o.getFaculty() != null && o.getFaculty().getPerson().getUNID() == facultyUNID)
+            .collect(Collectors.toList());
+        
         courseStudentsMap = new HashMap<>();
-        
-        // Create mock courses
-        Course course1 = new Course("CS5010", "Program Design Paradigm", 4);
-        Course course2 = new Course("CS5800", "Algorithms", 4);
-        
-        CourseOffering offering1 = new CourseOffering(course1, "Fall 2024", faculty, 60, "Mon/Wed 2:00-3:30 PM");
-        CourseOffering offering2 = new CourseOffering(course2, "Fall 2024", faculty, 50, "Tue/Thu 10:00-11:30 AM");
-        
-        facultyCourses.add(offering1);
-        facultyCourses.add(offering2);
-        
-        // Create mock students for CS5010
-        List<StudentGradeData> cs5010Students = new ArrayList<>();
-        Person p1 = new Person("Alice Johnson", "alice@neu.edu", "617-555-0101");
-        Person p2 = new Person("Bob Smith", "bob@neu.edu", "617-555-0102");
-        Person p3 = new Person("Carol Davis", "carol@neu.edu", "617-555-0103");
-        Person p4 = new Person("David Wilson", "david@neu.edu", "617-555-0104");
-        
-        cs5010Students.add(new StudentGradeData(new Student(p1, Department.CS)));
-        cs5010Students.add(new StudentGradeData(new Student(p2, Department.CS)));
-        cs5010Students.add(new StudentGradeData(new Student(p3, Department.IS)));
-        cs5010Students.add(new StudentGradeData(new Student(p4, Department.DS)));
-        
-        courseStudentsMap.put("CS5010", cs5010Students);
-        
-        // Create mock students for CS5800
-        List<StudentGradeData> cs5800Students = new ArrayList<>();
-        Person p5 = new Person("Eve Martinez", "eve@neu.edu", "617-555-0105");
-        Person p6 = new Person("Frank Brown", "frank@neu.edu", "617-555-0106");
-        
-        cs5800Students.add(new StudentGradeData(new Student(p5, Department.CS)));
-        cs5800Students.add(new StudentGradeData(new Student(p6, Department.AI)));
-        
-        courseStudentsMap.put("CS5800", cs5800Students);
+
+        // 2. Simulate loading active students for each assigned course
+        for (CourseOffering offering : facultyCourses) {
+            String courseID = offering.getCourseID();
+            
+            List<StudentGradeData> enrolledStudents = ConfigureJTable.enrollmentList.stream()
+                .filter(e -> e.getCourseOffering().getCourseID().equals(courseID) && e.isActive())
+                .map(e -> new StudentGradeData(e.getStudent()))
+                .collect(Collectors.toList());
+            
+            courseStudentsMap.put(courseID, enrolledStudents);
+        }
     }
 
     /**
@@ -104,19 +94,26 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
      */
     private void populateCourseDropdown() {
         cmbSelectCourse.removeAllItems();
+        cmbSelectCourse.addItem("-- Select Course --");
+        
         for (CourseOffering offering : facultyCourses) {
             cmbSelectCourse.addItem(offering.getCourseID() + " - " + offering.getCourseName());
         }
     }
 
     /**
-     * Load students for the selected course
+     * Load students for the selected course into the JTable
      */
     private void loadStudentsForSelectedCourse() {
         int selectedIndex = cmbSelectCourse.getSelectedIndex();
-        if (selectedIndex < 0) return;
+        if (selectedIndex <= 0) { // Index 0 is "-- Select Course --"
+            DefaultTableModel model = (DefaultTableModel) tblStudent.getModel();
+            model.setRowCount(0);
+            return;
+        }
         
-        selectedCourseOffering = facultyCourses.get(selectedIndex);
+        // Adjust index because of the placeholder item
+        selectedCourseOffering = facultyCourses.get(selectedIndex - 1);
         String courseID = selectedCourseOffering.getCourseID();
         
         List<StudentGradeData> students = courseStudentsMap.get(courseID);
@@ -145,14 +142,11 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
 
     /**
      * Compute final grades based on entered scores
-     * Grading scheme: Assignments 30%, Midterm 30%, Final 40%
+     * Grading scheme: Assignments 30%, Midterm 30%, Final 40% (Assignment Requirement)
      */
     private void computeFinalGrades() {
         if (selectedCourseOffering == null) {
-            JOptionPane.showMessageDialog(this, 
-                "Please select a course first.", 
-                "No Course Selected", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a course first.", "No Course Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -160,20 +154,14 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
         String courseID = selectedCourseOffering.getCourseID();
         List<StudentGradeData> students = courseStudentsMap.get(courseID);
         
-        if (students == null || students.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "No students enrolled in this course.", 
-                "No Students", 
-                JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
+        if (students == null || students.isEmpty()) { return; }
         
         try {
             // Read scores from table and compute grades
             for (int i = 0; i < model.getRowCount(); i++) {
                 StudentGradeData data = students.get(i);
                 
-                // Get scores from table (columns: 2=Assign, 3=Midterm, 4=Final)
+                // Read scores from table (Editable columns: 2, 3, 4)
                 double assignScore = Double.parseDouble(model.getValueAt(i, 2).toString());
                 double midtermScore = Double.parseDouble(model.getValueAt(i, 3).toString());
                 double finalScore = Double.parseDouble(model.getValueAt(i, 4).toString());
@@ -182,8 +170,7 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
                 if (!isValidScore(assignScore) || !isValidScore(midtermScore) || !isValidScore(finalScore)) {
                     JOptionPane.showMessageDialog(this, 
                         "All scores must be between 0 and 100 for student: " + data.student.getPerson().getName(), 
-                        "Invalid Score", 
-                        JOptionPane.ERROR_MESSAGE);
+                        "Invalid Score", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 
@@ -193,124 +180,89 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
                 data.finalScore = finalScore;
                 
                 // Calculate total percentage: Assignments 30%, Midterm 30%, Final 40%
-                data.totalPercentage = (assignScore * 0.30) + (midtermScore * 0.30) + (finalScore * 0.40);
+                data.totalPercentage = GradeCalculator.calculateWeightedTotal(assignScore, midtermScore, finalScore);
                 
                 // Calculate letter grade
-                data.letterGrade = calculateLetterGrade(data.totalPercentage);
+                data.letterGrade = GradeCalculator.calculateLetterGrade(data.totalPercentage);
                 
-                // Update table
+                // Update table (Total=5, Grade=6)
                 model.setValueAt(String.format("%.2f", data.totalPercentage), i, 5);
                 model.setValueAt(data.letterGrade, i, 6);
             }
             
-            JOptionPane.showMessageDialog(this, 
-                "Final grades computed successfully!", 
-                "Success", 
-                JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Final grades computed successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Please enter valid numeric scores for all students.", 
-                "Invalid Input", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please enter valid numeric scores for all students.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    /**
-     * Validate if score is between 0 and 100
-     */
+    private void saveGrades() {
+        // NOTE: In a real system, this would update the central Enrollment list.
+        // For simplicity, we assume computeFinalGrades() has already updated the local map.
+        
+        JOptionPane.showMessageDialog(this, 
+            "Grades saved successfully to the system! (Local Mock Update)", 
+            "Grades Saved", 
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+
     private boolean isValidScore(double score) {
         return score >= 0 && score <= 100;
     }
 
     /**
-     * Calculate letter grade from percentage
-     */
-    private String calculateLetterGrade(double percentage) {
-        if (percentage >= 93) return "A";
-        else if (percentage >= 90) return "A-";
-        else if (percentage >= 87) return "B+";
-        else if (percentage >= 83) return "B";
-        else if (percentage >= 80) return "B-";
-        else if (percentage >= 77) return "C+";
-        else if (percentage >= 73) return "C";
-        else if (percentage >= 70) return "C-";
-        else if (percentage >= 67) return "D+";
-        else if (percentage >= 60) return "D";
-        else return "F";
-    }
-
-    /**
-     * Rank students by total grade percentage and show class GPA
+     * Rank students by total grade percentage and show class GPA (Assignment Requirement)
      */
     private void rankStudents() {
         if (selectedCourseOffering == null) {
-            JOptionPane.showMessageDialog(this, 
-                "Please select a course first.", 
-                "No Course Selected", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a course first.", "No Course Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
         String courseID = selectedCourseOffering.getCourseID();
         List<StudentGradeData> students = courseStudentsMap.get(courseID);
         
-        if (students == null || students.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "No students enrolled in this course.", 
-                "No Students", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        if (students == null || students.isEmpty()) { return; }
         
         // Check if grades are computed
-        boolean gradesComputed = false;
-        for (StudentGradeData data : students) {
-            if (data.totalPercentage > 0 || !data.letterGrade.equals("N/A")) {
-                gradesComputed = true;
-                break;
-            }
-        }
+        boolean gradesComputed = students.stream().anyMatch(data -> data.totalPercentage > 0);
         
         if (!gradesComputed) {
-            JOptionPane.showMessageDialog(this, 
-                "Please compute final grades first.", 
-                "Grades Not Computed", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please compute final grades first.", "Grades Not Computed", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-            // Sort students by total percentage (descending)
+        // Sort students by total percentage (descending)
         List<StudentGradeData> rankedStudents = new ArrayList<>(students);
         rankedStudents.sort((s1, s2) -> Double.compare(s2.totalPercentage, s1.totalPercentage));
         
         // Calculate class average GPA
-        double totalGPA = 0.0;
-        int validGrades = 0;
+        double totalQualityPoints = 0.0;
+        int totalCredits = 0;
         
         for (StudentGradeData data : rankedStudents) {
             if (!data.letterGrade.equals("N/A")) {
-                double gpa = convertLetterGradeToGPA(data.letterGrade);
-                if (gpa >= 0) {
-                    totalGPA += gpa;
-                    validGrades++;
-                }
+                // Use GradeCalculator to get points
+                double gpa = GradeCalculator.letterGradeToGPA(data.letterGrade);
+                int credits = selectedCourseOffering.getCourse().getCredits();
+                totalQualityPoints += gpa * credits;
+                totalCredits += credits;
             }
         }
         
-        double avgGPA = validGrades > 0 ? totalGPA / validGrades : 0.0;
+        double avgGPA = totalCredits > 0 ? totalQualityPoints / totalCredits : 0.0;
         
-        // Update UI - Class Average GPA
+        // Update UI
         txtClassAvgGPA.setText(String.format("%.2f", avgGPA));
         
-        // Update UI - Top Performer
         if (!rankedStudents.isEmpty()) {
             StudentGradeData topStudent = rankedStudents.get(0);
             txtTopPerformer.setText(topStudent.student.getPerson().getName() + 
                 " (" + String.format("%.2f", topStudent.totalPercentage) + "%)");
         }
         
-        // Update table with ranked students
+        // Re-populate table with ranked order
         DefaultTableModel model = (DefaultTableModel) tblStudent.getModel();
         model.setRowCount(0);
         
@@ -325,48 +277,16 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
                 data.letterGrade
             });
         }
-        
-        // Show success message with details
-        JOptionPane.showMessageDialog(this, 
-            "Students ranked by performance!\n\n" +
-            "Top Performer: " + txtTopPerformer.getText() + "\n" +
-            "Class Average GPA: " + txtClassAvgGPA.getText() + "\n" +
-            "Total Students: " + validGrades, 
-            "Ranking Complete", 
-            JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**
-     * Convert letter grade to GPA (4.0 scale)
-     */
-    private double convertLetterGradeToGPA(String letterGrade) {
-        switch (letterGrade) {
-            case "A": return 4.0;
-            case "A-": return 3.7;
-            case "B+": return 3.3;
-            case "B": return 3.0;
-            case "B-": return 2.7;
-            case "C+": return 2.3;
-            case "C": return 2.0;
-            case "C-": return 1.7;
-            case "D+": return 1.3;
-            case "D": return 1.0;
-            case "F": return 0.0;
-            default: return -1.0; // Invalid grade
-        }
-    }
-
-    /**
-     * View transcript summary for selected student
+     * View transcript summary for selected student (Assignment Requirement)
      */
     private void viewTranscriptSummary() {
         int selectedRow = tblStudent.getSelectedRow();
         
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, 
-                "Please select a student from the table.", 
-                "No Selection", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a student from the table.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -376,27 +296,22 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
         
         // Create transcript summary
         StringBuilder transcript = new StringBuilder();
-        transcript.append("=== TRANSCRIPT SUMMARY ===\n\n");
+        transcript.append("=== PROGRESS/TRANSCRIPT SUMMARY ===\n\n");
         transcript.append("Student: ").append(selectedStudent.student.getPerson().getName()).append("\n");
         transcript.append("ID: ").append(selectedStudent.student.getPerson().getUNID()).append("\n");
         transcript.append("Department: ").append(selectedStudent.student.getDepartment()).append("\n\n");
         transcript.append("--- Current Course Performance ---\n");
-        transcript.append("Course: ").append(selectedCourseOffering.getCourseID())
-                  .append(" - ").append(selectedCourseOffering.getCourseName()).append("\n");
+        transcript.append("Course: ").append(selectedCourseOffering.getCourseID()).append(" - ").append(selectedCourseOffering.getCourseName()).append("\n");
         transcript.append("Assignment Score: ").append(String.format("%.2f", selectedStudent.assignmentScore)).append("\n");
         transcript.append("Midterm Score: ").append(String.format("%.2f", selectedStudent.midtermScore)).append("\n");
         transcript.append("Final Exam Score: ").append(String.format("%.2f", selectedStudent.finalScore)).append("\n");
         transcript.append("Total Percentage: ").append(String.format("%.2f", selectedStudent.totalPercentage)).append("%\n");
         transcript.append("Letter Grade: ").append(selectedStudent.letterGrade).append("\n\n");
-        transcript.append("--- Overall Academic Record ---\n");
+        transcript.append("--- Overall Academic Record (MOCK) ---\n");
         transcript.append("Overall GPA: ").append(String.format("%.2f", selectedStudent.student.getOverallGPA())).append("\n");
-        transcript.append("Credits Completed: ").append(String.format("%.0f", selectedStudent.student.getCreditsCompleted())).append("\n");
         transcript.append("Academic Standing: ").append(selectedStudent.student.getAcademicStanding()).append("\n");
         
-        JOptionPane.showMessageDialog(this, 
-            transcript.toString(), 
-            "Transcript Summary", 
-            JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, transcript.toString(), "Transcript Summary", JOptionPane.INFORMATION_MESSAGE);
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -452,6 +367,11 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
         jScrollPane1.setViewportView(tblStudent);
 
         btnComputeGrade.setText("Compute Final Grade");
+        btnComputeGrade.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnComputeGradeActionPerformed(evt);
+            }
+        });
 
         btnSaveGrade.setText("Save Grades");
         btnSaveGrade.addActionListener(new java.awt.event.ActionListener() {
@@ -530,10 +450,7 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
     private void btnSaveGradeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveGradeActionPerformed
         // TODO add your handling code here:
         if (selectedCourseOffering == null) {
-            JOptionPane.showMessageDialog(this, 
-                "Please select a course first.", 
-                "No Course Selected", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a course first.", "No Course Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -545,8 +462,12 @@ public class StudentGradingJPanel extends javax.swing.JPanel {
             selectedCourseOffering.getCourseName() + "\n\n" +
             "Note: In production, this would persist to a database.", 
             "Grades Saved", 
-            JOptionPane.INFORMATION_MESSAGE);        
+            JOptionPane.INFORMATION_MESSAGE);       
     }//GEN-LAST:event_btnSaveGradeActionPerformed
+
+    private void btnComputeGradeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnComputeGradeActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnComputeGradeActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

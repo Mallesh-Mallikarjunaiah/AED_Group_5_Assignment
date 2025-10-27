@@ -3,89 +3,81 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.FacultyRole;
+
 import Model.Course;
 import Model.CourseOffering;
 import Model.Faculty;
 import Model.User.UserAccount;
-import Model.accesscontrol.DataValidator;
+import Model.accesscontrol.ConfigureJTable; // Central Data Source
+import Model.accesscontrol.DataValidator; 
 import java.awt.CardLayout;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 import javax.swing.filechooser.FileNameExtensionFilter;
 /**
  *
  * @author talha
  */
+
 public class CourseManagementJPanel extends javax.swing.JPanel {
     private JPanel workArea;
     private UserAccount userAccount;
-    private Faculty faculty;
-    private List<CourseOffering> facultyCourses; // Courses assigned to this faculty
+    private Faculty faculty; // The logged-in faculty member
+    private List<CourseOffering> facultyCourses; 
     private CourseOffering selectedCourseOffering;
     private String syllabusPath = null;
-    /**
-     * Creates new form CourseManagementJPanel
-     */
+    
     public CourseManagementJPanel(JPanel workArea, UserAccount userAccount) {
         this.workArea = workArea;
         this.userAccount = userAccount;
         this.faculty = (Faculty) userAccount.getProfile();
         initComponents();
-        initializeMockData();
+        
+        // FIX 1: Initialize data by filtering central list
+        loadFacultyCourses(); 
         populateCourseTable();
         
-        // Disable editing fields initially
         setFieldsEditable(false);
-        
     }
+    
     /**
-     * Initialize mock course offerings for this faculty
-     * TODO: Replace with actual data from your DataStore
+     * Replaces mock data initialization with logic to filter central data store.
      */
-    private void initializeMockData() {
-        facultyCourses = new ArrayList<>();
+    private void loadFacultyCourses() {
+        // Filter the central list by the current faculty's UNID
+        int facultyUNID = faculty.getPerson().getUNID();
         
-        // Create mock courses assigned to this faculty
-        Course course1 = new Course("CS5010", "Program Design Paradigm", 4);
-        Course course2 = new Course("CS5800", "Algorithms", 4);
-        Course course3 = new Course("CS6220", "Data Mining", 3);
-        
-        // Create course offerings for Fall 2024
-        CourseOffering offering1 = new CourseOffering(course1, "Fall 2024", faculty, 60, "Mon/Wed 2:00-3:30 PM");
-        CourseOffering offering2 = new CourseOffering(course2, "Fall 2024", faculty, 50, "Tue/Thu 10:00-11:30 AM");
-        CourseOffering offering3 = new CourseOffering(course3, "Spring 2025", faculty, 40, "Mon/Wed 6:00-7:30 PM");
-        
-        // Simulate some enrollments
-        offering1.incrementEnrolledCount();
-        offering1.incrementEnrolledCount();
-        offering1.incrementEnrolledCount();
-        offering2.incrementEnrolledCount();
-        offering2.incrementEnrolledCount();
-        
-        facultyCourses.add(offering1);
-        facultyCourses.add(offering2);
-        facultyCourses.add(offering3);
+        this.facultyCourses = ConfigureJTable.courseOfferingList.stream()
+            .filter(o -> o.getFaculty() != null && o.getFaculty().getPerson().getUNID() == facultyUNID)
+            .collect(Collectors.toList());
     }
 
     /**
-     * Populate the course table with faculty's assigned courses
+     * Populate the course table with ONLY the faculty's assigned courses
      */
     private void populateCourseTable() {
         DefaultTableModel model = (DefaultTableModel) tblCourses.getModel();
-        model.setRowCount(0); // Clear existing rows
-        
+        model.setRowCount(0); 
+
         for (CourseOffering offering : facultyCourses) {
             Course course = offering.getCourse();
-            String status = offering.getEnrolledCount() >= offering.getCapacity() ? "Full" : "Open";
             
+            // Calculate status
+            String status;
+            if (offering.getEnrolledCount() == 0) {
+                 status = "No Enrollments";
+            } else {
+                 status = "Enrolled: " + offering.getEnrolledCount() + " / " + offering.getCapacity();
+            }
+
             model.addRow(new Object[]{
                 course.getCourseID(),
                 course.getName(),
-                "Credits: " + course.getCredits(), // Using description field for credits
+                "Credits: " + course.getCredits(), 
                 offering.getSchedule(),
                 offering.getCapacity(),
                 status
@@ -97,17 +89,20 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
      * Enable or disable text fields for editing
      */
     private void setFieldsEditable(boolean editable) {
-        txtTitle.setEditable(editable);
-        txtDescription.setEditable(editable);
+        // Read-only fields (Course data)
+        txtCourseID.setEditable(false);
+        txtTitle.setEditable(false);
+        txtDescription.setEditable(false); // Description usually holds credits/desc
+        txtStatus.setEditable(false); 
+        
+        // Editable fields (Offering data - Schedule and Capacity)
         txtSchedule.setEditable(editable);
         txtCapacity.setEditable(editable);
-        txtStatus.setEditable(false); // Status is always read-only
+        
         btnSave.setEnabled(editable);
+        btnViewEdit.setEnabled(!editable);
     }
 
-    /**
-     * Clear all text fields
-     */
     private void clearFields() {
         txtCourseID.setText("");
         txtTitle.setText("");
@@ -117,7 +112,6 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
         txtStatus.setText("");
         selectedCourseOffering = null;
     }
-   
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -314,18 +308,15 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
         int selectedRow = tblCourses.getSelectedRow();
         
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, 
-                "Please select a course from the table.", 
-                "No Selection", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a course from the table.", "No Selection", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // Get the selected course offering
+        // Get the selected course offering from the filtered list (reliable)
         selectedCourseOffering = facultyCourses.get(selectedRow);
         Course course = selectedCourseOffering.getCourse();
         
-        // Populate fields with course data
+        // Populate fields with current data
         txtCourseID.setText(course.getCourseID());
         txtTitle.setText(course.getName());
         txtDescription.setText("Credits: " + course.getCredits());
@@ -337,11 +328,12 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
                         + selectedCourseOffering.getCapacity() + ")";
         txtStatus.setText(status);
         
-        // Enable editing (except for read-only fields)
+        // Enable editing for schedule and capacity
         setFieldsEditable(true);
+        btnViewEdit.setEnabled(false); // Disable self
         
         JOptionPane.showMessageDialog(this, 
-            "Course details loaded. You can now edit Schedule and Capacity.", 
+            "Course details loaded. Edit Schedule and Capacity, then click Save.", 
             "View/Edit Mode", 
             JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_btnViewEditActionPerformed
@@ -349,10 +341,7 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         // TODO add your handling code here:
         if (selectedCourseOffering == null) {
-            JOptionPane.showMessageDialog(this, 
-                "No course selected. Please use View/Edit first.", 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No course selected. Please use View/Edit first.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
@@ -360,65 +349,50 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
         String newSchedule = txtSchedule.getText().trim();
         String capacityStr = txtCapacity.getText().trim();
         
-        if (newSchedule.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Schedule cannot be empty.", 
-                "Validation Error", 
-                JOptionPane.ERROR_MESSAGE);
+        if (!DataValidator.isNotEmpty(newSchedule) || !DataValidator.isNotEmpty(capacityStr)) {
+            JOptionPane.showMessageDialog(this, "Schedule and Capacity cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
         try {
             int newCapacity = Integer.parseInt(capacityStr);
             
+            // Check 1: Capacity cannot be reduced below current enrollment
             if (newCapacity < selectedCourseOffering.getEnrolledCount()) {
                 JOptionPane.showMessageDialog(this, 
-                    "Capacity cannot be less than current enrollment count (" 
-                    + selectedCourseOffering.getEnrolledCount() + ").", 
-                    "Validation Error", 
-                    JOptionPane.ERROR_MESSAGE);
+                    "Capacity cannot be less than current enrollment count (" + selectedCourseOffering.getEnrolledCount() + ").", 
+                    "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
+            // Check 2: Capacity must be reasonable
             if (newCapacity < 1 || newCapacity > 200) {
-                JOptionPane.showMessageDialog(this, 
-                    "Capacity must be between 1 and 200.", 
-                    "Validation Error", 
-                    JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Capacity must be between 1 and 200.", "Validation Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Update the course offering
+            // Update the persistent course offering object
             selectedCourseOffering.setSchedule(newSchedule);
             selectedCourseOffering.setCapacity(newCapacity);
             
-            // Refresh the table
+            // Refresh the table to show the persistent changes
             populateCourseTable();
             
-            // Clear fields and disable editing
             clearFields();
             setFieldsEditable(false);
+            btnViewEdit.setEnabled(true); // Re-enable view button
             
-            JOptionPane.showMessageDialog(this, 
-                "Course details updated successfully!", 
-                "Success", 
-                JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Course details updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Capacity must be a valid number.", 
-                "Validation Error", 
-                JOptionPane.ERROR_MESSAGE);
-        }   
+            JOptionPane.showMessageDialog(this, "Capacity must be a valid whole number.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+        }    
     }//GEN-LAST:event_btnSaveActionPerformed
 
     private void btnUploadSyllabusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUploadSyllabusActionPerformed
         // TODO add your handling code here:
         if (selectedCourseOffering == null) {
-            JOptionPane.showMessageDialog(this, 
-                "Please select a course first using View/Edit.", 
-                "No Course Selected", 
-                JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a course first using View/Edit.", "No Course Selected", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -427,8 +401,7 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
         fileChooser.setDialogTitle("Select Syllabus File");
         
         // Set file filter for common document types
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-            "Document Files (*.pdf, *.doc, *.docx)", "pdf", "doc", "docx");
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Document Files (*.pdf, *.doc, *.docx)", "pdf", "doc", "docx");
         fileChooser.setFileFilter(filter);
         
         int result = fileChooser.showOpenDialog(this);
@@ -437,16 +410,12 @@ public class CourseManagementJPanel extends javax.swing.JPanel {
             File selectedFile = fileChooser.getSelectedFile();
             syllabusPath = selectedFile.getAbsolutePath();
             
-            // TODO: In a real application, you would:
-            // 1. Upload the file to a server or document management system
-            // 2. Store the file path/URL in the CourseOffering object
-            // 3. Make the syllabus accessible to enrolled students
+            // NOTE: Update the CourseOffering object with the syllabus path/URL here
+            // selectedCourseOffering.setSyllabusPath(syllabusPath);
             
             JOptionPane.showMessageDialog(this, 
                 "Syllabus uploaded successfully!\n" +
-                "File: " + selectedFile.getName() + "\n" +
-                "Path: " + syllabusPath + "\n\n" +
-                "Note: In a production system, this would be stored in a database.", 
+                "File: " + selectedFile.getName(), 
                 "Upload Successful", 
                 JOptionPane.INFORMATION_MESSAGE);
         }
