@@ -3,11 +3,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
-import Model.Enrollment;
-import Model.CourseOffering;
-import Model.Student;
+
+import Model.*;
+import Model.accesscontrol.ConfigureJTable; // Central Data Source
+import Model.accesscontrol.GradeCalculator; // Use GradeCalculator for GPA conversion
 import Model.User.UserAccount;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 /**
@@ -15,28 +17,178 @@ import javax.swing.table.DefaultTableModel;
  * @author MALLESH
  */
 public class TranscriptJPanel extends javax.swing.JPanel {
+    private JPanel workArea;
     private UserAccount userAccount;
     private Student student;
-    private ArrayList<Enrollment> allEnrollments;
+    private List<Enrollment> allEnrollments; // All graded/completed enrollments for the student
 
-
-    /**
-     * Creates new form TranscriptJPanel
-     */
-    public TranscriptJPanel(UserAccount account, ArrayList<Enrollment> enrollments) {
+    // Constructor with data initialization
+    public TranscriptJPanel(JPanel workArea, UserAccount account) {
         initComponents();
-        this.allEnrollments = new ArrayList<>();
+        this.workArea = workArea;
         this.userAccount = account;
         this.student = (Student) account.getProfile();
-        this.allEnrollments = enrollments;
+        
+        // Load persistent data from central store
+        loadAllCompletedEnrollments();
+        
+        // Make text fields read-only
+        txtTermGPA.setEditable(false);
+        txtOverallGPA.setEditable(false);
 
         populateSemesterComboBox();
-        populateTranscriptTable(null);
+        checkTuitionStatusAndDisplay();
+    }
+    
+    /**
+     * Loads all completed/graded enrollments from the central store.
+     */
+    private void loadAllCompletedEnrollments() {
+        int studentUNID = student.getPerson().getUNID();
+        
+        // Filter the central list for enrollments belonging to this student AND marked completed/graded
+        this.allEnrollments = ConfigureJTable.enrollmentList.stream()
+            .filter(e -> e.getStudent().getPerson().getUNID() == studentUNID)
+            .filter(Enrollment::isCompleted)
+            .collect(Collectors.toList());
+        
+        // Initial calculation to set Overall GPA and Credits on the Student object
         calculateOverallGPA();
+        student.setAcademicStanding(determineAcademicStanding(student.getOverallGPA(), student.getOverallGPA()));
+    }
+    
+    /**
+     * CRITICAL REQUIREMENT: Checks if the student's tuition is paid and controls visibility.
+     */
+    private void checkTuitionStatusAndDisplay() {
+        if (student.getTuitionBalance() > 0.0) {
+            // Tuition is owed (UNPAID)
+            JScrollPane scrollPane = (JScrollPane) jScrollPane1.getParent(); // Get parent component
+            
+            // Hide the table and show a warning label
+            tblTranscript.setVisible(false);
+            scrollPane.setViewportView(new JLabel("<html><h2 style='color:red;'>ACCESS DENIED:</h2>Tuition balance must be paid to view transcript.<br>Current Balance: $" + String.format("%.2f", student.getTuitionBalance()) + "</html>", SwingConstants.CENTER));
+            
+            // Hide GPA summary
+            txtTermGPA.setText("---");
+            txtOverallGPA.setText("---");
+            btnFilter.setEnabled(false);
+        } else {
+            // Paid off or balance is 0 or negative
+            tblTranscript.setVisible(true);
+            populateTranscriptTable(null); // Load all semesters by default
+            btnFilter.setEnabled(true);
+        }
     }
 
-    TranscriptJPanel() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    /**
+     * Populate semester dropdown with unique completed semesters.
+     */
+    private void populateSemesterComboBox() {
+        Set<String> semesters = new LinkedHashSet<>();
+        semesters.add("All Semesters");
+        
+        allEnrollments.stream()
+            .map(e -> e.getCourseOffering().getSemester())
+            .forEach(semesters::add);
+        
+        comboBoxSemester.removeAllItems();
+        semesters.forEach(comboBoxSemester::addItem);
+    }
+
+    /**
+     * Populates transcript table with filtering by semester.
+     */
+    private void populateTranscriptTable(String semesterFilter) {
+        if (student.getTuitionBalance() > 0.0) {
+            return; // Gatekeeper check
+        }
+        
+        DefaultTableModel model = (DefaultTableModel) tblTranscript.getModel();
+        model.setRowCount(0);
+
+        for (Enrollment e : allEnrollments) {
+            String semester = e.getCourseOffering().getSemester();
+            
+            // Apply semester filter
+            if (semesterFilter != null && !semesterFilter.equals("All Semesters") &&
+                !semester.equalsIgnoreCase(semesterFilter)) {
+                continue;
+            }
+            
+            CourseOffering co = e.getCourseOffering();
+            double termGPAForCourse = GradeCalculator.letterGradeToGPA(e.getGrade());
+            
+            // Calculate Term GPA just for the purpose of getting the Academic Standing for the displayed term
+            double currentTermGPA = 0; 
+            if (!semester.equals("All Semesters")) {
+                currentTermGPA = calculateTermGPAForDisplay(semester);
+            }
+            
+            Object[] row = new Object[7];
+            row[0] = semester;
+            row[1] = co.getCourse().getCourseID();
+            row[2] = co.getCourse().getName();
+            row[3] = e.getGrade();
+            row[4] = String.format("%.2f", currentTermGPA); // Term GPA Points
+            row[5] = String.format("%.2f", student.getOverallGPA()); // Overall GPA Points
+            row[6] = student.getAcademicStanding(); // Academic Standing (Based on Overall/Current Term)
+            model.addRow(row);
+        }
+    }
+
+    /**
+     * Calculates Term GPA for the selected semester only (used by filter).
+     */
+    private double calculateTermGPAForDisplay(String semester) {
+        double totalPoints = 0;
+        int totalCredits = 0;
+
+        for (Enrollment e : allEnrollments) {
+            if (e.isCompleted() && e.getCourseOffering().getSemester().equalsIgnoreCase(semester)) {
+                double gradePoint = GradeCalculator.letterGradeToGPA(e.getGrade());
+                int credits = e.getCourseOffering().getCourse().getCredits();
+                totalPoints += (gradePoint * credits);
+                totalCredits += credits;
+            }
+        }
+        return totalCredits == 0 ? 0 : totalPoints / totalCredits;
+    }
+
+    /**
+     * Calculates the student's Overall GPA and updates the persistent Student record.
+     */
+    private void calculateOverallGPA() {
+        double totalPoints = 0;
+        int totalCredits = 0;
+
+        for (Enrollment e : allEnrollments) {
+            if (e.isCompleted()) {
+                double gradePoint = GradeCalculator.letterGradeToGPA(e.getGrade());
+                int credits = e.getCourseOffering().getCourse().getCredits();
+                totalPoints += (gradePoint * credits);
+                totalCredits += credits;
+            }
+        }
+
+        double overallGPA = totalCredits == 0 ? 0 : totalPoints / totalCredits;
+        
+        // Update persistent student record (CRUCIAL for Grad Audit/Registrar)
+        student.setOverallGPA(overallGPA);
+        student.setCreditsCompleted(totalCredits);
+    }
+
+    /**
+     * Determine Academic Standing based on the provided assignment rules.
+     */
+    private String determineAcademicStanding(double termGPA, double overallGPA) {
+        if (overallGPA < 3.0) {
+            return "Academic Probation"; // regardless of term GPA
+        } else if (termGPA < 3.0) {
+            return "Academic Warning"; // if term GPA drops below 3.0
+        } else {
+            return "Good Standing";
+        }
     }
 
     /**
@@ -191,104 +343,29 @@ public class TranscriptJPanel extends javax.swing.JPanel {
 
     private void comboBoxSemesterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBoxSemesterActionPerformed
         // TODO add your handling code here:
+        btnFilterActionPerformed(evt);
     }//GEN-LAST:event_comboBoxSemesterActionPerformed
 
     private void btnFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFilterActionPerformed
         // TODO add your handling code here:
         String selectedSemester = (String) comboBoxSemester.getSelectedItem();
         populateTranscriptTable(selectedSemester);
-        calculateTermGPA(selectedSemester);
+        
+        // Update GPA Display
+        if (selectedSemester != null && !selectedSemester.equals("All Semesters")) {
+            double termGPA = calculateTermGPAForDisplay(selectedSemester);
+            txtTermGPA.setText(String.format("%.2f", termGPA));
+            
+            // Academic standing label is based on current display (Overall remains static)
+            String standing = determineAcademicStanding(termGPA, student.getOverallGPA());
+            // Since this label is not in the design, we use a dialog/message
+            // JOptionPane.showMessageDialog(this, "Academic Standing for " + selectedSemester + ": " + standing); 
+        } else {
+            // Show overall values when filtering by all semesters
+            txtTermGPA.setText(String.format("%.2f", student.getOverallGPA()));
+        }
     }//GEN-LAST:event_btnFilterActionPerformed
-    private void populateSemesterComboBox() {
-        Set<String> semesters = new HashSet<>();
-        for (Enrollment e : allEnrollments) {
-            if (e.isCompleted()) {
-                semesters.add(e.getCourseOffering().getSemester());
-            }
-        }
-        comboBoxSemester.removeAllItems();
-        for (String sem : semesters) {
-            comboBoxSemester.addItem(sem);
-        }
-    }
 
-    private void populateTranscriptTable(String semesterFilter) {
-        DefaultTableModel model = (DefaultTableModel) tblTranscript.getModel();
-        model.setRowCount(0);
-
-        for (Enrollment e : allEnrollments) {
-            if (e.isCompleted() && (semesterFilter == null || e.getCourseOffering().getSemester().equalsIgnoreCase(semesterFilter))) {
-                CourseOffering co = e.getCourseOffering();
-                Object[] row = new Object[7];
-                row[0] = co.getSemester();
-                row[1] = co.getCourse().getCourseID();
-                row[2] = co.getCourse().getName();
-                row[3] = co.getCourse().getCredits();
-                row[4] = e.getGrade();
-                row[5] = calculateGPAForGrade(e.getGrade());
-                row[6] = getStanding(e.getGrade());
-                model.addRow(row);
-            }
-        }
-    }
-
-    private double calculateGPAForGrade(String grade) {
-        switch (grade.toUpperCase()) {
-            case "A+": return 4.0;
-            case "A":  return 4.0;
-            case "A-": return 3.7;
-            case "B+": return 3.3;
-            case "B":  return 3.0;
-            case "B-": return 2.7;
-            case "C+": return 2.3;
-            case "C":  return 2.0;
-            case "D":  return 1.0;
-            case "F":  return 0.0;
-            default:   return 0.0;
-        }
-    }
-
-    private String getStanding(String grade) {
-        double gpa = calculateGPAForGrade(grade);
-        if (gpa >= 3.5) return "Excellent";
-        else if (gpa >= 3.0) return "Good";
-        else if (gpa >= 2.0) return "Average";
-        else return "At Risk";
-    }
-
-    private void calculateTermGPA(String semester) {
-        double totalPoints = 0;
-        int totalCredits = 0;
-
-        for (Enrollment e : allEnrollments) {
-            if (e.isCompleted() && e.getCourseOffering().getSemester().equalsIgnoreCase(semester)) {
-                double gradePoint = calculateGPAForGrade(e.getGrade());
-                int credits = e.getCourseOffering().getCourse().getCredits();
-                totalPoints += (gradePoint * credits);
-                totalCredits += credits;
-            }
-        }
-
-        double termGPA = totalCredits == 0 ? 0 : totalPoints / totalCredits;
-        txtTermGPA.setText(String.format("%.2f", termGPA));
-    }
-
-    private void calculateOverallGPA() {
-        double totalPoints = 0;
-        int totalCredits = 0;
-
-        for (Enrollment e : allEnrollments) {
-            if (e.isCompleted()) {
-                double gradePoint = calculateGPAForGrade(e.getGrade());
-                int credits = e.getCourseOffering().getCourse().getCredits();
-                totalPoints += (gradePoint * credits);
-                totalCredits += credits;
-            }
-        }
-
-        double overallGPA = totalCredits == 0 ? 0 : totalPoints / totalCredits;
-        txtOverallGPA.setText(String.format("%.2f", overallGPA));
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnFilter;

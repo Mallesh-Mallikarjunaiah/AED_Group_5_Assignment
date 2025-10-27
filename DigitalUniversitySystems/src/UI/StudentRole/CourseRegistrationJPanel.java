@@ -3,127 +3,189 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
+
+
+import Model.Student;
 import Model.CourseOffering;
 import Model.Enrollment;
-import Model.Student;
-import Model.Faculty;
+import Model.EnrollmentService;
+import Model.CourseService;
+import Model.accesscontrol.ConfigureJTable;
 import Model.User.UserAccount;
-import java.awt.CardLayout;
-import java.awt.event.ActionEvent;
-import java.util.ArrayList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.table.DefaultTableModel;
-
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.ArrayList;
 /**
  *
  * @author MALLESH
  */
 public class CourseRegistrationJPanel extends javax.swing.JPanel {
-    private JPanel mainWorkArea;
-    private UserAccount userAccount;
-    private Student student;
-    private ArrayList<CourseOffering> availableOfferings;
-    private ArrayList<Enrollment> enrollmentList;
-    /**
-     * Creates new form CourseRegistrationJPanel
-     */
-    public CourseRegistrationJPanel(JPanel mainWorkArea, UserAccount userAccount,
-            ArrayList<CourseOffering> offerings, ArrayList<Enrollment> enrollments) {
+
+    private Student loggedInStudent;
+    private EnrollmentService enrollmentService;
+    private CourseService courseService;
+
+    // Lists for holding current displayed data
+    private List<CourseOffering> availableOfferings = new ArrayList<>();
+    private List<Enrollment> currentEnrollments = new ArrayList<>(); 
+    
+    // Max credit hour limit (Assignment Requirement)
+    private static final int MAX_CREDITS = 8; 
+
+    public CourseRegistrationJPanel(JPanel workArea, UserAccount userAccount) {
         initComponents();
-        this.mainWorkArea = mainWorkArea;
-        this.userAccount = userAccount;
-        this.student = (Student) userAccount.getProfile();
-        this.availableOfferings = offerings;
-        this.enrollmentList = enrollments;
-        filterComboBox.removeAllItems();    
+        this.loggedInStudent = (Student) userAccount.getProfile();
+        this.enrollmentService = new EnrollmentService();
+        this.courseService = new CourseService();
+        
+        initializeComponents();
+    }
+    
+    private void initializeComponents() {
+        populateSemesterDropdown();
+        populateFilterDropdown();
+        
+        // Initial table load (shows empty or all for the default semester)
+        SemesterjComboBoxActionPerformed(null); 
+        updateCurrentCreditsDisplay();
+    }
+    
+    private void populateSemesterDropdown() {
+        SemesterjComboBox.removeAllItems();
+        SemesterjComboBox.addItem("-- Select Semester --");
+        // Pull unique semesters from CourseOfferings (central store)
+        ConfigureJTable.courseOfferingList.stream()
+            .map(CourseOffering::getSemester)
+            .distinct()
+            .forEach(SemesterjComboBox::addItem);
+    }
+    
+    private void populateFilterDropdown() {
+        filterComboBox.removeAllItems();
         filterComboBox.addItem("Course ID");
         filterComboBox.addItem("Course Name");
-        filterComboBox.addItem("Faculty");
-        filterComboBox.addItem("Department");
-        TxtCreditsCurrentlyRegistered.setEditable(false);
-        TxtCreditsCurrentlyRegistered.setToolTipText("Auto-calculated from your active enrollments");
-
-
-        populateSemesterDropdown();
-        populateAvailableCoursesTable();
-        populateMyCoursesTable();
-        updateCreditSummary();
+        filterComboBox.addItem("Teacher Name"); // Required 3 search methods
     }
     
-    
-         private void populateSemesterDropdown() {
-        SemesterjComboBox.removeAllItems();
-        ArrayList<String> semesters = new ArrayList<>();
-        for (CourseOffering co : availableOfferings) {
-            if (!semesters.contains(co.getSemester())) {
-                semesters.add(co.getSemester());
-            }
+    private void updateCurrentCreditsDisplay() {
+        String semester = (String) SemesterjComboBox.getSelectedItem();
+        if (semester == null || semester.startsWith("--")) {
+            TxtCreditsCurrentlyRegistered.setText("0.0 / " + MAX_CREDITS);
+            return;
         }
-        for (String s : semesters) {
-            SemesterjComboBox.addItem(s);
+        
+        double currentCredits = enrollmentService.getCurrentActiveCredits(loggedInStudent, semester);
+        TxtCreditsCurrentlyRegistered.setText(currentCredits + " / " + MAX_CREDITS);
+        
+        if (currentCredits >= MAX_CREDITS) {
+             // Visually warn student about maximum capacity
+             TxtCreditsCurrentlyRegistered.setForeground(java.awt.Color.RED);
+        } else {
+             TxtCreditsCurrentlyRegistered.setForeground(java.awt.Color.BLACK);
         }
     }
-          /** Populates Course Offerings Table */
+    
+    /**
+     * Populates the TOP table with available courses based on the selected semester/search.
+     */
     private void populateAvailableCoursesTable() {
+        String semester = (String) SemesterjComboBox.getSelectedItem();
         DefaultTableModel model = (DefaultTableModel) courseOfferingsJTable.getModel();
         model.setRowCount(0);
+        availableOfferings.clear();
 
-        String selectedSemester = (String) SemesterjComboBox.getSelectedItem();
+        if (semester == null || semester.startsWith("--")) return;
 
-        for (CourseOffering co : availableOfferings) {
-            if (selectedSemester == null || co.getSemester().equals(selectedSemester)) {
-                Object[] row = new Object[8];
-                row[0] = co.getCourse().getCourseID();
-                row[1] = co.getCourse().getName();
-                row[2] = (co.getFaculty() != null) ? co.getFaculty().getPerson().getName() : "TBA";
-                row[3] = (co.getFaculty() != null) ? co.getFaculty().getDepartment().toString() : "-";
-                row[4] = co.getCourse().getCredits();
-                row[5] = co.getSchedule();
-                row[6] = co.getEnrolledCount() + "/" + co.getCapacity();
-                row[7] = (isAlreadyEnrolled(co)) ? "Enrolled" : "Available";
-                model.addRow(row);
+        // 1. Get student's current active enrollment IDs for comparison
+        List<String> enrolledIDs = enrollmentService.getEnrollmentsByStudent(loggedInStudent).stream()
+            .filter(Enrollment::isActive)
+            .map(e -> e.getCourseOffering().getCourse().getCourseID())
+            .collect(Collectors.toList());
+
+        // 2. Get all offerings for the semester
+        List<CourseOffering> allOfferings = courseService.getOfferingsBySemester(semester);
+
+        // 3. Populate table with Availability Status
+        for (CourseOffering offer : allOfferings) {
+            String courseID = offer.getCourse().getCourseID();
+            String status;
+
+            if (enrolledIDs.contains(courseID)) {
+                status = "ENROLLED";
+            } else if (offer.getEnrolledCount() >= offer.getCapacity()) {
+                status = "FULL";
+            } else {
+                status = "AVAILABLE";
+                availableOfferings.add(offer); // Store only available ones locally for enrollment logic
             }
+
+            model.addRow(new Object[]{
+                courseID, 
+                offer.getCourse().getName(),
+                offer.getFaculty().getPerson().getName(),
+                offer.getFaculty().getDepartment().toString(),
+                offer.getCourse().getCredits(),
+                offer.getSchedule(),
+                offer.getCapacity(),
+                status
+            });
         }
+        
+        // Populate the bottom table with current enrollments
+        populateCurrentEnrollmentTable();
     }
-       /** Populates Current Enrollment Table */
-    private void populateMyCoursesTable() {
+    
+    /**
+     * Populates the BOTTOM table with the student's CURRENT enrollment status.
+     */
+    private void populateCurrentEnrollmentTable() {
         DefaultTableModel model = (DefaultTableModel) currentEnrollmentJTable.getModel();
         model.setRowCount(0);
-
-        for (Enrollment e : enrollmentList) {
-            if (e.getStudent().equals(student) && e.isActive()) {
-                Object[] row = new Object[5];
-                row[0] = e.getCourseOffering().getCourse().getCourseID();
-                row[1] = e.getCourseOffering().getCourse().getName();
-                row[2] = e.getCourseOffering().getCourse().getCredits();
-                row[3] = e.getCourseOffering().getFaculty() != null ?
-                        e.getCourseOffering().getFaculty().getPerson().getName() : "TBA";
-                row[4] = e.getCourseOffering().getSemester();
-                model.addRow(row);
+        
+        this.currentEnrollments = enrollmentService.getEnrollmentsByStudent(loggedInStudent);
+        
+        for (Enrollment enrollment : currentEnrollments) {
+            CourseOffering offer = enrollment.getCourseOffering();
+            if (enrollment.isActive()) { // Only show active/dropped courses
+                model.addRow(new Object[]{
+                    offer.getCourse().getCourseID(),
+                    offer.getCourse().getName(),
+                    offer.getCourse().getCredits(),
+                    offer.getFaculty().getPerson().getName(),
+                    "N/A" // Enrollment Date (Simplify for now)
+                });
             }
         }
     }
-
-    /** Checks if student already enrolled in this offering */
-    private boolean isAlreadyEnrolled(CourseOffering offering) {
-        for (Enrollment e : enrollmentList) {
-            if (e.getStudent().equals(student) &&
-                e.getCourseOffering().equals(offering) &&
-                e.isActive()) {
-                return true;
-            }
-        }
-        return false;
-    }
-        private void updateCreditSummary() {
-        int totalCredits = 0;
-        for (Enrollment e : enrollmentList) {
-            if (e.getStudent().equals(student) && e.isActive()) {
-                totalCredits += e.getCourseOffering().getCourse().getCredits();
-            }
-        }
-        TxtCreditsCurrentlyRegistered.setText(String.valueOf(totalCredits));
+        
+    
+    private void displaySearchResults(List<CourseOffering> results) {
+         DefaultTableModel model = (DefaultTableModel) courseOfferingsJTable.getModel();
+         model.setRowCount(0);
+         
+         if (results.isEmpty()) {
+             JOptionPane.showMessageDialog(this, "No courses found matching your criteria.");
+             return;
+         }
+         
+         // Repopulate the top table with search results only
+         for (CourseOffering offer : results) {
+             String status = availableOfferings.contains(offer) ? "AVAILABLE" : "FULL/ENROLLED";
+             
+             model.addRow(new Object[]{
+                offer.getCourse().getCourseID(), 
+                offer.getCourse().getName(),
+                offer.getFaculty().getPerson().getName(),
+                offer.getFaculty().getDepartment().toString(),
+                offer.getCourse().getCredits(),
+                offer.getSchedule(),
+                offer.getCapacity(),
+                status
+            });
+         }
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -356,25 +418,7 @@ public class CourseRegistrationJPanel extends javax.swing.JPanel {
 
     private void txtSearchHereActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSearchHereActionPerformed
         // TODO add your handling code here:
-        String keyword = txtSearchHere.getText().trim().toLowerCase();
-        DefaultTableModel model = (DefaultTableModel) courseOfferingsJTable.getModel();
-        model.setRowCount(0);
-
-        for (CourseOffering co : availableOfferings) {
-            if (co.getCourse().getCourseID().toLowerCase().contains(keyword) ||
-                co.getCourse().getName().toLowerCase().contains(keyword)) {
-                Object[] row = new Object[8];
-                row[0] = co.getCourse().getCourseID();
-                row[1] = co.getCourse().getName();
-                row[2] = (co.getFaculty() != null) ? co.getFaculty().getPerson().getName() : "TBA";
-                row[3] = (co.getFaculty() != null) ? co.getFaculty().getDepartment().toString() : "-";
-                row[4] = co.getCourse().getCredits();
-                row[5] = co.getSchedule();
-                row[6] = co.getEnrolledCount() + "/" + co.getCapacity();
-                row[7] = (isAlreadyEnrolled(co)) ? "Enrolled" : "Available";
-                model.addRow(row);
-            }
-        }
+        
     }//GEN-LAST:event_txtSearchHereActionPerformed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
@@ -386,133 +430,143 @@ public class CourseRegistrationJPanel extends javax.swing.JPanel {
     private void btnEnrollActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnrollActionPerformed
         // TODO add your handling code here:
         int selectedRow = courseOfferingsJTable.getSelectedRow();
-        if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Please select a course to enroll.");
-            return;
-        }
-
-        CourseOffering selectedOffering = availableOfferings.get(selectedRow);
-
-        if (isAlreadyEnrolled(selectedOffering)) {
-            JOptionPane.showMessageDialog(this, "Already enrolled in this course.");
-            return;
-        }
-
-        if (selectedOffering.getEnrolledCount() >= selectedOffering.getCapacity()) {
-            JOptionPane.showMessageDialog(this, "Course is full. Cannot enroll.");
-            return;
-        }
-
-        // Credit limit check
-        int currentCredits = Integer.parseInt(TxtCreditsCurrentlyRegistered.getText());
-        if (currentCredits + selectedOffering.getCourse().getCredits() > 8) {
-            JOptionPane.showMessageDialog(this, "Cannot exceed 8 credit hours.");
-            return;
-        }
-
-        // Proceed with enrollment
-        Enrollment newEnrollment = new Enrollment(student, selectedOffering);
-        enrollmentList.add(newEnrollment);
-        selectedOffering.incrementEnrolledCount();
-
-        JOptionPane.showMessageDialog(this, "Successfully enrolled in " +
-                selectedOffering.getCourse().getName() + "!");
-        populateAvailableCoursesTable();
-        populateMyCoursesTable();
-        updateCreditSummary();
+        String semester = (String) SemesterjComboBox.getSelectedItem();
         
+        if (selectedRow < 0 || semester.startsWith("--")) {
+             JOptionPane.showMessageDialog(this, "Please select a course and semester.");
+             return;
+        }
+        
+        String status = (String) courseOfferingsJTable.getValueAt(selectedRow, 7);
+        if (!status.equals("AVAILABLE")) {
+             JOptionPane.showMessageDialog(this, "Cannot enroll: Course is already " + status + ".");
+             return;
+        }
+        
+        // 1. Get the Course Offering
+        String courseID = (String) courseOfferingsJTable.getValueAt(selectedRow, 0);
+        CourseOffering offeringToEnroll = courseService.findCourseOffering(courseID, semester);
+        
+        // 2. Check 8-Credit Hour Limit (Assignment Requirement)
+        double courseCredits = (double) courseOfferingsJTable.getValueAt(selectedRow, 4);
+        double currentCredits = enrollmentService.getCurrentActiveCredits(loggedInStudent, semester);
+        
+        if (currentCredits + courseCredits > MAX_CREDITS) {
+             JOptionPane.showMessageDialog(this, "Enrollment Failed: Exceeds maximum " + MAX_CREDITS + " credit hour limit.", "Load Limit Exceeded", JOptionPane.ERROR_MESSAGE);
+             return;
+        }
+        
+        // 3. Perform Enrollment
+        boolean success = enrollmentService.enrollStudent(loggedInStudent, offeringToEnroll, false); // Not admin override
+        
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Enrollment successful for " + courseID, "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Refresh both tables
+            populateAvailableCoursesTable();
+            updateCurrentCreditsDisplay();
+        } else {
+             JOptionPane.showMessageDialog(this, "Enrollment Failed (Course may be full).", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnEnrollActionPerformed
 
     private void btnDropActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDropActionPerformed
         // TODO add your handling code here:
-         int selectedRow = currentEnrollmentJTable.getSelectedRow();
+        int selectedRow = currentEnrollmentJTable.getSelectedRow();
         if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Select a course to drop.");
-            return;
-        }
-
-        String courseId = currentEnrollmentJTable.getValueAt(selectedRow, 0).toString();
-        Enrollment found = null;
-
-        for (Enrollment e : enrollmentList) {
-            if (e.getStudent().equals(student)
-                    && e.getCourseOffering().getCourse().getCourseID().equals(courseId)
-                    && e.isActive()) {
-                found = e;
-                break;
-            }
-        }
-
-        if (found != null) {
-            found.setActive(false);
-            found.getCourseOffering().decrementEnrolledCount();
-            JOptionPane.showMessageDialog(this, "Dropped successfully.");
-            populateAvailableCoursesTable();
-            populateMyCoursesTable();
-            updateCreditSummary();
-        } else {
-            JOptionPane.showMessageDialog(this, "Error: Enrollment not found.");
+             JOptionPane.showMessageDialog(this, "Please select an enrolled course from the bottom table to drop.");
+             return;
         }
         
+        // Get the enrollment object to drop (from the persistent list)
+        Enrollment enrollmentToDrop = (Enrollment) currentEnrollmentJTable.getValueAt(selectedRow, 0); // Need to store object in table or list
+        
+        // NOTE: Since the JTable stores strings, we must manually find the object in the currentEnrollments list:
+        String courseID = (String) currentEnrollmentJTable.getValueAt(selectedRow, 0);
+        Enrollment toDrop = currentEnrollments.stream()
+            .filter(e -> e.getCourseOffering().getCourseID().equals(courseID) && e.isActive())
+            .findFirst().orElse(null);
+        
+        if (toDrop != null) {
+            // Perform Drop (Tuition refund handled inside dropStudent method, per assignment)
+            boolean success = enrollmentService.dropStudent(toDrop);
+            
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Course dropped successfully. Refund initiated.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                populateAvailableCoursesTable();
+                updateCurrentCreditsDisplay();
+            } else {
+                 JOptionPane.showMessageDialog(this, "Drop failed.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }//GEN-LAST:event_btnDropActionPerformed
 
     private void TxtCreditsCurrentlyRegisteredActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TxtCreditsCurrentlyRegisteredActionPerformed
-        // TODO add your handling code here:
-         updateCreditSummary();  
+        // TODO add your handling code here:  
     }//GEN-LAST:event_TxtCreditsCurrentlyRegisteredActionPerformed
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         // TODO add your handling code here:
-         String keyword = txtSearchHere.getText().trim().toLowerCase();
-        DefaultTableModel model = (DefaultTableModel) courseOfferingsJTable.getModel();
-        model.setRowCount(0);
-
-        for (CourseOffering co : availableOfferings) {
-            if (co.getCourse().getCourseID().toLowerCase().contains(keyword) ||
-                co.getCourse().getName().toLowerCase().contains(keyword)) {
-                Object[] row = new Object[8];
-                row[0] = co.getCourse().getCourseID();
-                row[1] = co.getCourse().getName();
-                row[2] = (co.getFaculty() != null) ? co.getFaculty().getPerson().getName() : "TBA";
-                row[3] = (co.getFaculty() != null) ? co.getFaculty().getDepartment().toString() : "-";
-                row[4] = co.getCourse().getCredits();
-                row[5] = co.getSchedule();
-                row[6] = co.getEnrolledCount() + "/" + co.getCapacity();
-                row[7] = (isAlreadyEnrolled(co)) ? "Enrolled" : "Available";
-                model.addRow(row);
-            }
+        String filterType = (String) filterComboBox.getSelectedItem();
+        String query = txtSearchHere.getText().trim();
+        
+        if (query.isEmpty() || filterType == null) {
+            JOptionPane.showMessageDialog(this, "Please enter a search query and select a filter type.");
+            return;
         }
+
+        List<CourseOffering> results = new ArrayList<>();
+        List<CourseOffering> offeringsToSearch = courseService.getOfferingsBySemester((String) SemesterjComboBox.getSelectedItem());
+        
+        switch (filterType) {
+            case "Course ID":
+                results = offeringsToSearch.stream()
+                    .filter(o -> o.getCourse().getCourseID().equalsIgnoreCase(query))
+                    .collect(Collectors.toList());
+                break;
+            case "Course Name":
+                 results = offeringsToSearch.stream()
+                    .filter(o -> o.getCourse().getName().toLowerCase().contains(query.toLowerCase()))
+                    .collect(Collectors.toList());
+                break;
+            case "Teacher Name":
+                results = offeringsToSearch.stream()
+                    .filter(o -> o.getFaculty().getPerson().getName().toLowerCase().contains(query.toLowerCase()))
+                    .collect(Collectors.toList());
+                break;
+        }
+        
+        // Display search results
+        displaySearchResults(results);
     }//GEN-LAST:event_btnSearchActionPerformed
 
     private void filterComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filterComboBoxActionPerformed
         // TODO add your handling code here:
-      String selectedFilter = (String) filterComboBox.getSelectedItem();
+         String selectedFilter = (String) filterComboBox.getSelectedItem();
 
-    // Clear the search box hint based on the selected filter
-    if (selectedFilter != null) {
-        switch (selectedFilter) {
-            case "Course ID":
-                txtSearchHere.setToolTipText("Enter Course ID to search...");
-                break;
-            case "Course Name":
-                txtSearchHere.setToolTipText("Enter Course Name to search...");
-                break;
-            case "Faculty":
-                txtSearchHere.setToolTipText("Enter Faculty Name to search...");
-                break;
-            case "Department":
-                txtSearchHere.setToolTipText("Enter Department to search...");
-                break;
-            default:
-                txtSearchHere.setToolTipText("Search here...");
+        if (selectedFilter != null) {
+            switch (selectedFilter) {
+                case "Course ID":
+                    txtSearchHere.setToolTipText("Enter Course ID to search (e.g., INFO5100)");
+                    break;
+                case "Course Name":
+                    txtSearchHere.setToolTipText("Enter Course Name to search");
+                    break;
+                case "Faculty Name":
+                    txtSearchHere.setToolTipText("Enter Faculty Name to search");
+                    break;
+                case "Department":
+                    txtSearchHere.setToolTipText("Enter Department to search (CS, IS, DS, AI)");
+                    break;
+                default:
+                    txtSearchHere.setToolTipText("Search here...");
+            }
         }
-    }   
     }//GEN-LAST:event_filterComboBoxActionPerformed
 
     private void SemesterjComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SemesterjComboBoxActionPerformed
         // TODO add your handling code here:
         populateAvailableCoursesTable();
-        
+        updateCurrentCreditsDisplay();
     }//GEN-LAST:event_SemesterjComboBoxActionPerformed
 
 
