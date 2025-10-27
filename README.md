@@ -1,4 +1,4 @@
-# University Management System (UMS) - Academic & Financial Portal
+# University Management System (UMS)
 ________________________________________
 ## 2. Team Information
 Name	NUID	Responsibilities
