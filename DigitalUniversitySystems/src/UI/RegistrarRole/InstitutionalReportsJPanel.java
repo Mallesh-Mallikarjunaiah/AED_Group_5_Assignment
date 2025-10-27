@@ -4,13 +4,20 @@
  */
 package UI.RegistrarRole;
 
-import Model.Department; // Import your Department enum
+import Model.Department; 
+import Model.accesscontrol.ConfigureJTable; 
+import Model.CourseOffering;
+import Model.Enrollment;
+import Model.Student;
+import Model.accesscontrol.GradeCalculator; 
 import javax.swing.ButtonGroup;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.util.Vector; // Used for JTable structure management
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 /**
  *
  * @author jayan
@@ -25,36 +32,31 @@ public class InstitutionalReportsJPanel extends javax.swing.JPanel {
     }
 
     private void setupReportControls() {
-        // 1. Group the Radio Buttons
         reportButtonGroup = new ButtonGroup();
         reportButtonGroup.add(radioEnrollmentByDepartment);
         reportButtonGroup.add(radioGPADistribution);
         
-        // Default selection and table setup
         radioEnrollmentByDepartment.setSelected(true);
         populateFilterDropdown();
-        updateTableStructure(true); // Default to Enrollment Report structure
+        updateTableStructure(true); 
     }
     
     private void populateFilterDropdown() {
         jComboBoxFilter.removeAllItems();
         
-        // If Enrollment Report is selected, populate with Departments
         if (radioEnrollmentByDepartment.isSelected()) {
             jComboBoxFilter.addItem("All Departments");
             for (Department dept : Department.values()) {
                 jComboBoxFilter.addItem(dept.toString());
             }
         } 
-        // If GPA Distribution is selected, populate with Programs/Semesters
         else if (radioGPADistribution.isSelected()) {
             jComboBoxFilter.addItem("All Programs");
-            jComboBoxFilter.addItem("MSIS");
-            jComboBoxFilter.addItem("MSCS");
+            jComboBoxFilter.addItem("MSIS"); // Mock Program
+            jComboBoxFilter.addItem("MSCS"); // Mock Program
         }
     }
     
-    // Dynamically update JTable columns based on the selected report type
     private void updateTableStructure(boolean isEnrollmentReport) {
         DefaultTableModel model = new DefaultTableModel();
         
@@ -63,7 +65,6 @@ public class InstitutionalReportsJPanel extends javax.swing.JPanel {
                 "Course ID", "Course Name", "Department", "Total Enrolled", "Capacity", "Capacity Used (%)"
             });
         } else {
-            // GPA Distribution by Program/Course
             model.setColumnIdentifiers(new Object[]{
                 "Program/Course", "Students (N)", "Average GPA", "Students > 3.5", "Students < 3.0"
             });
@@ -88,19 +89,28 @@ public class InstitutionalReportsJPanel extends javax.swing.JPanel {
         model.setRowCount(0);
 
         String filter = (String) jComboBoxFilter.getSelectedItem();
+        String filterDept = filter.equals("All Departments") ? null : filter;
         
-        // --- MOCK LOGIC for Enrollment by Department/Course ---
-        // This logic needs to pull data from CourseOffering and Enrollment records
-        
-        // Report 1: Total Enrollment (example)
-        if (filter.equals("All Departments") || filter.equals("IS")) {
-            model.addRow(new Object[]{"INFO 5100", "App Engineering", "IS", 35, 40, "87.5%"});
-            model.addRow(new Object[]{"INFO 6205", "Data Mining", "IS", 15, 30, "50.0%"});
+        // --- LOGIC PULLING FROM CENTRAL COURSE OFFERING LIST ---
+        for (CourseOffering offer : ConfigureJTable.courseOfferingList) {
+            String deptName = offer.getFaculty().getDepartment().toString();
+            
+            // Apply Department Filter
+            if (filterDept != null && !filterDept.equals(deptName)) {
+                continue;
+            }
+            
+            double capacityUsed = (double) offer.getEnrolledCount() / offer.getCapacity() * 100;
+            
+            model.addRow(new Object[]{
+                offer.getCourse().getCourseID(),
+                offer.getCourse().getName(),
+                deptName,
+                offer.getEnrolledCount(),
+                offer.getCapacity(),
+                String.format("%.1f%%", capacityUsed)
+            });
         }
-        if (filter.equals("All Departments") || filter.equals("CS")) {
-            model.addRow(new Object[]{"CS 5010", "Algorithms", "CS", 28, 30, "93.3%"});
-        }
-        // --- END MOCK LOGIC ---
         
         if (model.getRowCount() == 0) {
              JOptionPane.showMessageDialog(this, "No enrollment data found for the selected filter.", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -113,18 +123,52 @@ public class InstitutionalReportsJPanel extends javax.swing.JPanel {
         model.setRowCount(0);
 
         String filter = (String) jComboBoxFilter.getSelectedItem();
-
-        // --- MOCK LOGIC for GPA Distribution by Program ---
-        // This logic needs to query Student records and aggregate GPA data
         
-        // Report 2: GPA Distribution (example)
-        if (filter.equals("All Programs") || filter.equals("MSIS")) {
-            model.addRow(new Object[]{"MSIS Program", 150, 3.45, 65, 10});
+        // --- LOGIC PULLING FROM CENTRAL STUDENT LIST ---
+        
+        // 1. Group all students by their Department (mocking Program)
+        Map<String, List<Student>> studentsByDept = ConfigureJTable.directory.getUserAccountList().stream()
+                .filter(ua -> ua.getProfile() instanceof Student)
+                .map(ua -> (Student) ua.getProfile())
+                .filter(s -> s.getDepartment() != null)
+                .collect(Collectors.groupingBy(s -> s.getDepartment().toString()));
+
+        // 2. Map IS/AI/DS to MSIS and CS to MSCS for reporting clarity
+        Map<String, List<Student>> programMap = new HashMap<>();
+        programMap.put("MSIS", new ArrayList<>());
+        programMap.put("MSCS", new ArrayList<>());
+        
+        studentsByDept.forEach((dept, students) -> {
+            if (dept.equals("CS")) {
+                programMap.get("MSCS").addAll(students);
+            } else { // IS, AI, DS
+                programMap.get("MSIS").addAll(students);
+            }
+        });
+
+        // 3. Process the programs and calculate metrics
+        for (Map.Entry<String, List<Student>> entry : programMap.entrySet()) {
+            String programName = entry.getKey();
+            List<Student> students = entry.getValue();
+            
+            // Apply Program Filter
+            if (filter.equals("All Programs") || filter.equals(programName)) {
+                
+                // Collect GPAs and compute statistics
+                double totalGPA = students.stream().mapToDouble(Student::getOverallGPA).sum();
+                long countHighGPA = students.stream().filter(s -> s.getOverallGPA() >= 3.5).count();
+                long countLowGPA = students.stream().filter(s -> s.getOverallGPA() < 3.0).count();
+                double avgGPA = students.isEmpty() ? 0.0 : totalGPA / students.size();
+                
+                model.addRow(new Object[]{
+                    programName + " Program", 
+                    students.size(), 
+                    String.format("%.2f", avgGPA), 
+                    countHighGPA, 
+                    countLowGPA
+                });
+            }
         }
-        if (filter.equals("All Programs") || filter.equals("MSCS")) {
-            model.addRow(new Object[]{"MSCS Program", 200, 3.20, 40, 25});
-        }
-        // --- END MOCK LOGIC ---
         
         if (model.getRowCount() == 0) {
              JOptionPane.showMessageDialog(this, "No GPA distribution data found for the selected filter.", "Info", JOptionPane.INFORMATION_MESSAGE);

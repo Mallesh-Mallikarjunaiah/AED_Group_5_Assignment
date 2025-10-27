@@ -419,10 +419,27 @@ public class CourseOfferingJPanel extends javax.swing.JPanel {
 
     private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
         // TODO add your handling code here:
+        // 1. Check for selection based on the table's selected row index, NOT the variable.
+        int selectedRow = tblCourseOffering.getSelectedRow();
+    
+        if (selectedRow < 0) {
+        // This is the error message you are seeing.
+         JOptionPane.showMessageDialog(this, "Please select a course offering to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
+         return;
+        }
+    
+    // CRITICAL: Ensure the details are loaded and selectedOffering is set right now.
+    // If the displaySelectedCourseDetails() relies on the listener, call it directly:
+        displaySelectedCourseDetails(); 
+
+    // Now, check the loaded object state (which should not be null if the row index was valid)
         if (selectedOffering == null) {
-            JOptionPane.showMessageDialog(this, "Please select a course offering to edit.", "Warning", JOptionPane.WARNING_MESSAGE);
+        // This handles unexpected errors where the object couldn't be retrieved from the model
+            JOptionPane.showMessageDialog(this, "Error: Could not retrieve course details from data store.", "Fatal Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+    
+    // Enable editing fields
         setEditMode(true);
         btnEdit.setEnabled(false);
         btnSave.setEnabled(true);

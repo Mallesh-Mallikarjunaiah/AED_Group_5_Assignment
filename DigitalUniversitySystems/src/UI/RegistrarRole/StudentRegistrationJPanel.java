@@ -5,15 +5,19 @@
 package UI.RegistrarRole;
 
 import Model.Student;
-import Model.Enrollment; // New Import
-import Model.CourseOffering; // New Import
-import Model.EnrollmentService; // New Service
+import Model.Enrollment;
+import Model.CourseOffering;
+import Model.EnrollmentService; 
+import Model.CourseService;    // New service import for finding available courses
+import Model.accesscontrol.ConfigureJTable; // For getting semester list
 import Model.User.UserAccount;
-import Model.User.UserAccountDirectory; // Required for Admin/User searching
+import Model.User.UserAccountDirectory;
+import UI.RegistrarRole.StudentSearchDialog; // Required for search button action
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
-import java.util.ArrayList; 
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 /**
  *
  * @author jayan
@@ -21,25 +25,41 @@ import java.util.ArrayList;
 public class StudentRegistrationJPanel extends javax.swing.JPanel {
 
     private Student currentStudent; 
-    private final UserAccountDirectory accountDirectory; // For finding Student objects
-    private final EnrollmentService enrollmentService; // The core service
+    private final UserAccountDirectory accountDirectory;
+    private final EnrollmentService enrollmentService;
+    private final CourseService courseService; // New CourseService instance
     
-    // Store the currently displayed Enrollments to easily access the model object for Drop
+    // Stores the currently displayed enrollments (used only if table shows status, not offerings)
     private List<Enrollment> displayedEnrollments; 
+    
+    // Store all current offerings for the selected semester
+    private List<CourseOffering> currentOfferings; 
     
     public StudentRegistrationJPanel(UserAccountDirectory directory) {
         initComponents();
         this.accountDirectory = directory;
         this.enrollmentService = new EnrollmentService();
+        this.courseService = new CourseService(); // Initialize CourseService
         this.displayedEnrollments = new ArrayList<>();
+        this.currentOfferings = new ArrayList<>();
+        
+        initializeSemesterDropdown(); // Call new method
         resetStudentDetails();
         
-        // ... (Table listener remains) ...
+        // Attaching the JTable listener for selection events
         tblStudentRegistration.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tblStudentRegistration.getSelectedRow() != -1) {
                 updateEnrollDropButtons();
             }
         });
+    }
+    
+    private void initializeSemesterDropdown() {
+        jComboBoxSemester.removeAllItems();
+        // NOTE: In a real app, this list comes from CourseOffering records.
+        jComboBoxSemester.addItem("Fall 2025");
+        jComboBoxSemester.addItem("Spring 2026");
+        jComboBoxSemester.setSelectedIndex(0);
     }
     
     private void resetStudentDetails() {
@@ -52,24 +72,30 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         btnEnroll.setEnabled(false);
         btnDrop.setEnabled(false);
         this.displayedEnrollments.clear();
+        this.currentOfferings.clear();
     }
     
-    // Updates the profile info labels and calls to populate the enrollment table
     private void displayStudent(Student student) {
         this.currentStudent = student;
         fieldName.setText(student.getPerson().getName());
         fieldID.setText(String.valueOf(student.getPerson().getUNID()));
         fieldCredits.setText(String.valueOf(student.getCreditsCompleted()));
         
-        populateEnrollmentTable(student);
+        // Display student's current enrollments by default when profile is loaded
+        populateEnrollmentTable(student); 
     }
     
+    /**
+     * Populates the table with the student's EXISTING ENROLLMENTS (Active/Dropped).
+     */
     private void populateEnrollmentTable(Student student) {
         DefaultTableModel model = (DefaultTableModel) tblStudentRegistration.getModel();
         model.setRowCount(0);
         
-        // --- FIX: Use the EnrollmentService to get persistent data ---
         this.displayedEnrollments = enrollmentService.getEnrollmentsByStudent(student);
+
+        // Change table headers back to Enrollment Status for clarity
+        model.setColumnIdentifiers(new Object[]{"Course ID", "Course Name", "Enrollment Status"});
 
         for (Enrollment enrollment : displayedEnrollments) {
             CourseOffering offer = enrollment.getCourseOffering();
@@ -79,6 +105,58 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
                 enrollment.isActive() ? "Enrolled" : "Dropped"
             });
         }
+        this.currentOfferings.clear(); // Clear offerings list when showing status
+        updateEnrollDropButtons();
+    }
+    
+    /**
+     * CRITICAL FIX: Populates the table with ALL AVAILABLE OFFERINGS for the selected semester.
+     * This is triggered by the 'View' button.
+     */
+    private void populateAvailableCourses(String semester) {
+        if (currentStudent == null) {
+            JOptionPane.showMessageDialog(this, "Please select a student first.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        DefaultTableModel model = (DefaultTableModel) tblStudentRegistration.getModel();
+        model.setRowCount(0);
+        
+        // Change table headers to reflect Course Availability
+        model.setColumnIdentifiers(new Object[]{"Course ID", "Course Name", "Availability"});
+
+        // 1. Get ALL offerings for the semester
+        List<CourseOffering> allOfferings = courseService.getOfferingsBySemester(semester);
+        
+        // 2. Get student's existing enrollments for quick lookup
+        List<String> enrolledIDs = enrollmentService.getEnrollmentsByStudent(currentStudent).stream()
+            .filter(Enrollment::isActive)
+            .map(e -> e.getCourseOffering().getCourse().getCourseID())
+            .collect(Collectors.toList());
+
+        // 3. Populate table with Availability Status
+        this.currentOfferings = new ArrayList<>(); // Store available offerings
+        
+        for (CourseOffering offer : allOfferings) {
+            String courseID = offer.getCourse().getCourseID();
+            String status;
+
+            if (enrolledIDs.contains(courseID)) {
+                status = "ENROLLED";
+            } else if (offer.getEnrolledCount() >= offer.getCapacity()) {
+                status = "FULL";
+            } else {
+                status = "AVAILABLE";
+                currentOfferings.add(offer); // Only add truly available courses to the local list
+            }
+
+            model.addRow(new Object[]{
+                courseID, 
+                offer.getCourse().getName(), 
+                status
+            });
+        }
+        this.displayedEnrollments.clear(); // Clear old enrollment list
         updateEnrollDropButtons();
     }
     
@@ -92,11 +170,19 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
 
         String status = (String) tblStudentRegistration.getValueAt(selectedRow, 2);
         
-        // Registrar can only Enroll if the status is NOT enrolled (i.e., available or dropped)
-        btnEnroll.setEnabled(!status.equals("Enrolled"));
-        
-        // Registrar can only Drop if the status is Enrolled
-        btnDrop.setEnabled(status.equals("Enrolled"));
+        // If showing AVAILABLE COURSES: Enable Enroll if status is AVAILABLE
+        if (!currentOfferings.isEmpty()) {
+            btnEnroll.setEnabled(status.equals("AVAILABLE"));
+            btnDrop.setEnabled(false);
+        } 
+        // If showing STUDENT ENROLLMENTS: Enable Drop if status is ENROLLED
+        else if (!displayedEnrollments.isEmpty()) {
+            btnEnroll.setEnabled(false);
+            btnDrop.setEnabled(status.equals("Enrolled"));
+        } else {
+            btnEnroll.setEnabled(false);
+            btnDrop.setEnabled(false);
+        }
     }
     
 
@@ -109,9 +195,7 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        txtStudentNameID = new javax.swing.JTextField();
         btnSearchStudent = new javax.swing.JButton();
-        lblStudentNameID = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblStudentRegistration = new javax.swing.JTable();
         lblName = new javax.swing.JLabel();
@@ -122,6 +206,8 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         fieldCredits = new javax.swing.JLabel();
         btnEnroll = new javax.swing.JButton();
         btnDrop = new javax.swing.JButton();
+        jComboBoxSemester = new javax.swing.JComboBox<>();
+        btnView = new javax.swing.JButton();
 
         setBackground(new java.awt.Color(204, 255, 204));
         setMaximumSize(new java.awt.Dimension(600, 465));
@@ -129,14 +215,12 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         setPreferredSize(new java.awt.Dimension(600, 465));
 
         btnSearchStudent.setBackground(new java.awt.Color(255, 204, 204));
-        btnSearchStudent.setText("Search");
+        btnSearchStudent.setText("Search/Select Student");
         btnSearchStudent.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSearchStudentActionPerformed(evt);
             }
         });
-
-        lblStudentNameID.setText("Student Name/ID");
 
         tblStudentRegistration.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -176,6 +260,21 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
             }
         });
 
+        jComboBoxSemester.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxSemester.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxSemesterActionPerformed(evt);
+            }
+        });
+
+        btnView.setBackground(new java.awt.Color(255, 204, 204));
+        btnView.setText("View");
+        btnView.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnViewActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -184,18 +283,9 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 588, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 588, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(31, 31, 31)
-                                .addComponent(lblStudentNameID)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtStudentNameID, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnSearchStudent))
-                            .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
                                 .addComponent(lblName)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(fieldName)
@@ -206,25 +296,34 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
                                 .addGap(79, 79, 79)
                                 .addComponent(lblCreditsEnrolled)
                                 .addGap(18, 18, 18)
-                                .addComponent(fieldCredits)))
+                                .addComponent(fieldCredits)
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(189, 189, 189)
+                                .addComponent(btnEnroll)
+                                .addGap(82, 82, 82)
+                                .addComponent(btnDrop))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(43, 43, 43)
+                                .addComponent(btnSearchStudent)
+                                .addGap(84, 84, 84)
+                                .addComponent(jComboBoxSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(btnView)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addGap(189, 189, 189)
-                .addComponent(btnEnroll)
-                .addGap(82, 82, 82)
-                .addComponent(btnDrop)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblStudentNameID)
-                    .addComponent(txtStudentNameID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnSearchStudent))
-                .addGap(49, 49, 49)
+                    .addComponent(btnSearchStudent)
+                    .addComponent(jComboBoxSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnView))
+                .addGap(37, 37, 37)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblName)
                     .addComponent(fieldName)
@@ -244,27 +343,21 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
 
     private void btnSearchStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchStudentActionPerformed
         // TODO add your handling code here:
-        String searchInput = txtStudentNameID.getText().trim();
-        if (searchInput.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a Student Name or ID.", "Warning", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // Find the UserAccount (which holds the Student Profile)
-        // NOTE: This assumes your UserAccountDirectory has a findUserAccount method that returns the account.
-        UserAccount account = accountDirectory.findUserAccount(searchInput); 
-        Student foundStudent = null;
-        
-        if (account != null && account.getProfile() instanceof Student) {
-             foundStudent = (Student) account.getProfile();
-        }
-
-        if (foundStudent != null) {
-            displayStudent(foundStudent);
-        } else {
-            JOptionPane.showMessageDialog(this, "Student not found with name/ID: " + searchInput, "Error", JOptionPane.ERROR_MESSAGE);
-            resetStudentDetails();
-        }
+        // NOTE: Passing 'null' for the parent frame is a simple way to create a JDialog; 
+    // you can pass this JDialog's parent JFrame (MainJFrame) if needed for focus.
+    StudentSearchDialog dialog = new StudentSearchDialog(null, true, accountDirectory);
+    dialog.setVisible(true);
+    
+    // 2. Retrieve the Student object selected in the dialog
+    Student selectedStudent = dialog.getSelectedStudent();
+    
+    if (selectedStudent != null) {
+        // SUCCESS: The dialog successfully returned a validated Student object.
+        displayStudent(selectedStudent);
+    } else if (currentStudent == null) {
+        // If the user closed the dialog without selecting a student, reset the view.
+        resetStudentDetails();
+    }
     }//GEN-LAST:event_btnSearchStudentActionPerformed
 
     private void btnEnrollActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnrollActionPerformed
@@ -272,30 +365,42 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         int selectedRow = tblStudentRegistration.getSelectedRow();
         if (currentStudent == null || selectedRow < 0 || !btnEnroll.isEnabled()) return;
         
-        // In a real scenario, you'd have a second table listing available courses.
-        // For simplicity, we mock enrolling in the *selected course* (if not already enrolled).
+        // Enrollment can only happen if currentOfferings list is populated
+        if (currentOfferings.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please click 'View' to see available courses for enrollment.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Get the selected Course ID from the table
         String courseID = (String) tblStudentRegistration.getValueAt(selectedRow, 0);
-        String semester = (String) JOptionPane.showInputDialog(this, "Enter Semester (e.g., Fall 2025):");
+        String semester = (String) jComboBoxSemester.getSelectedItem();
         
-        if (semester == null || semester.isEmpty()) return;
-
-        // 1. Find the Course Offering object from the central store
-        CourseOffering offering = enrollmentService.findCourseOffering(courseID, semester);
+        // Find the full offering object that the Registrar wants to enroll into
+        CourseOffering offeringToEnroll = currentOfferings.stream()
+            .filter(o -> o.getCourse().getCourseID().equals(courseID) && o.getSemester().equals(semester))
+            .findFirst().orElse(null);
         
-        if (offering != null) {
+        if (offeringToEnroll != null) {
+            // Check load limit before performing Admin-side enrollment
+            double currentCredits = enrollmentService.getCurrentActiveCredits(currentStudent, semester);
+            if (currentCredits + offeringToEnroll.getCourse().getCredits() > 8) {
+                JOptionPane.showMessageDialog(this, "Enrollment Failed: Student would exceed 8 credit hour limit.", "Load Limit Exceeded", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
             // 2. Enroll the student (Admin-Side is implied true here)
-            boolean success = enrollmentService.enrollStudent(currentStudent, offering, true);
+            boolean success = enrollmentService.enrollStudent(currentStudent, offeringToEnroll, true);
             
             if (success) {
                 JOptionPane.showMessageDialog(this, "Admin-side ENROLLMENT successful for " + courseID, "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                 JOptionPane.showMessageDialog(this, "Enrollment Failed (Course Full/Load Limit Exceeded).", "Error", JOptionPane.ERROR_MESSAGE);
+                 JOptionPane.showMessageDialog(this, "Enrollment Failed (Course Full).", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } else {
-             JOptionPane.showMessageDialog(this, "Course Offering not found for " + courseID + " in " + semester, "Error", JOptionPane.ERROR_MESSAGE);
+             JOptionPane.showMessageDialog(this, "Offering object not found in current list. Please search again.", "Error", JOptionPane.ERROR_MESSAGE);
         }
 
-        populateEnrollmentTable(currentStudent); // Refresh data from persistent store
+        populateEnrollmentTable(currentStudent); // Switch back to showing student's status
     }//GEN-LAST:event_btnEnrollActionPerformed
 
     private void btnDropActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDropActionPerformed
@@ -303,37 +408,57 @@ public class StudentRegistrationJPanel extends javax.swing.JPanel {
         int selectedRow = tblStudentRegistration.getSelectedRow();
         if (currentStudent == null || selectedRow < 0 || !btnDrop.isEnabled()) return;
         
-        Enrollment enrollmentToDrop = displayedEnrollments.get(selectedRow); // Get the persistent object
+        // Drop can only happen if displayedEnrollments list is populated
+        if (displayedEnrollments.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please view student's current enrollment status first.", "Warning", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        Enrollment enrollmentToDrop = displayedEnrollments.get(selectedRow); 
         
         int confirm = JOptionPane.showConfirmDialog(this, "Confirm Admin-side DROP for " + enrollmentToDrop.getCourseOffering().getCourse().getName() + "?", "Confirm", JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            // 1. Call EnrollmentService.dropStudent(enrollmentToDrop)
             boolean success = enrollmentService.dropStudent(enrollmentToDrop);
             
             if (success) {
-                JOptionPane.showMessageDialog(this, "Admin-side DROP successful.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Admin-side DROP successful. Tuition Refund initiated.", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
                  JOptionPane.showMessageDialog(this, "Drop failed (enrollment not active).", "Error", JOptionPane.ERROR_MESSAGE);
             }
-            populateEnrollmentTable(currentStudent); // Refresh data from persistent store
+            populateEnrollmentTable(currentStudent); // Refresh data
         }
     }//GEN-LAST:event_btnDropActionPerformed
+
+    private void jComboBoxSemesterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxSemesterActionPerformed
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_jComboBoxSemesterActionPerformed
+
+    private void btnViewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewActionPerformed
+        // TODO add your handling code here:
+        String semester = (String) jComboBoxSemester.getSelectedItem();
+        if (semester == null) {
+             JOptionPane.showMessageDialog(this, "Please select a semester.", "Warning", JOptionPane.WARNING_MESSAGE);
+             return;
+        }
+        populateAvailableCourses(semester);
+    }//GEN-LAST:event_btnViewActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDrop;
     private javax.swing.JButton btnEnroll;
     private javax.swing.JButton btnSearchStudent;
+    private javax.swing.JButton btnView;
     private javax.swing.JLabel fieldCredits;
     private javax.swing.JLabel fieldID;
     private javax.swing.JLabel fieldName;
+    private javax.swing.JComboBox<String> jComboBoxSemester;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblCreditsEnrolled;
     private javax.swing.JLabel lblID;
     private javax.swing.JLabel lblName;
-    private javax.swing.JLabel lblStudentNameID;
     private javax.swing.JTable tblStudentRegistration;
-    private javax.swing.JTextField txtStudentNameID;
     // End of variables declaration//GEN-END:variables
 }
