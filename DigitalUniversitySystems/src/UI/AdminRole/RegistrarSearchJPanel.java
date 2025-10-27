@@ -7,6 +7,8 @@ package UI.AdminRole;
 import Model.Registrar;
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
+import Model.PersonService; // Assuming PersonService is available for consistency
+import Model.accesscontrol.DataValidator; // For validation
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 

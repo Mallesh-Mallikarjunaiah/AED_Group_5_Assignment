@@ -118,25 +118,23 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
         }
 
         DefaultTableModel model = (DefaultTableModel) tblUserAccountManagement.getModel();
-        // Map view row to model row in case a RowSorter is active
         int modelRow = tblUserAccountManagement.convertRowIndexToModel(selectedRow);
 
         // Get values directly from the model
         Object nameObj = model.getValueAt(modelRow, 1);
         Object usernameObj = model.getValueAt(modelRow, 2);
         Object passwordObj = model.getValueAt(modelRow, 3);
+        Object unidObj = model.getValueAt(modelRow, 0);
 
         String name = nameObj == null ? "" : nameObj.toString();
         String username = usernameObj == null ? "" : usernameObj.toString();
         String password = passwordObj == null ? "" : passwordObj.toString();
+        String unid = unidObj == null ? "" : unidObj.toString();
 
-        // Lookup the account by UNID present in column 0 to avoid index mismatch when filtering
-        Object unidObj = model.getValueAt(modelRow, 0);
-        if (unidObj == null) {
-            JOptionPane.showMessageDialog(this, "Unable to determine selected user account (missing UNID).");
-            return;
+        if (unid.isEmpty()) {
+             JOptionPane.showMessageDialog(this, "Unable to determine selected user account (missing UNID).");
+             return;
         }
-        String unid = unidObj.toString();
 
         UserAccount account = accountDirectory.findUserAccount(unid);
         if (account == null) {
@@ -144,6 +142,7 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
             return;
         }
 
+        // --- Data Update Logic (Direct modification to UserAccount/Person) ---
         account.setUsername(username);
         account.setPassword(password);
         account.getProfile().getPerson().setName(name);
@@ -169,21 +168,17 @@ public class UserAccountManagementJPanel extends javax.swing.JPanel {
             DefaultTableModel model = (DefaultTableModel) tblUserAccountManagement.getModel();
             int modelRow = tblUserAccountManagement.convertRowIndexToModel(selectedRow);
             Object unidObj = model.getValueAt(modelRow, 0);
-            if (unidObj == null) {
-                JOptionPane.showMessageDialog(this, "Unable to determine selected user account (missing UNID).");
-                return;
-            }
-            String unid = unidObj.toString();
+            
+            String unid = unidObj == null ? "" : unidObj.toString();
             UserAccount account = accountDirectory.findUserAccount(unid);
-            if (account == null) {
+            
+            if (account != null) {
+                accountDirectory.getUserAccountList().remove(account);
+                refreshTable();
+                JOptionPane.showMessageDialog(this, "User account deleted successfully!");
+            } else {
                 JOptionPane.showMessageDialog(this, "Selected user account could not be found.");
-                return;
             }
-
-            accountDirectory.getUserAccountList().remove(account);
-            refreshTable();
-
-            JOptionPane.showMessageDialog(this, "User account deleted successfully!");
         }
     }//GEN-LAST:event_btnDeleteActionPerformed
 

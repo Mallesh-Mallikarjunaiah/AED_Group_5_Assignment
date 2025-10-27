@@ -4,14 +4,18 @@
  */
 package UI.AdminRole;
 
+
 import Model.Department;
 import Model.Faculty;
 import Model.Student;
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
+import Model.PersonService; // Use the Person Service for updates
+import Model.accesscontrol.DataValidator; // For input validation
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-
+import java.util.List;
+import java.util.Arrays;
 /**
  *
  * @author gagan
@@ -20,68 +24,91 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
 
     private UserAccountDirectory accountDirectory;
     private UserAccount selectedAccount;
+    private PersonService personService; // Service layer for updates
 
-    /**
-     * Creates new form RecordsSearchJPanel
-     */
-    public StudentFacultySearchJPanel() {
+    public StudentFacultySearchJPanel(UserAccountDirectory accountDirectory) {
         initComponents();
-        // ensure department combo and field states are initialized when created without an accountDirectory
+        this.accountDirectory = accountDirectory;
+        this.personService = new PersonService(accountDirectory); // Initialize service
         initializeComponents();
+        populateTable();
     }
 
     private void initializeComponents() {
+        // Populate Department ComboBox
         comboxDepartment.removeAllItems();
-        for (Department dept : Department.values()) {
-            comboxDepartment.addItem(dept.toString());
-        }
+        Arrays.stream(Department.values()).forEach(d -> comboxDepartment.addItem(d.toString()));
+        
         setFieldsEditable(false);
         btnSave.setEnabled(false);
         btnEdit.setEnabled(false);
     }
 
-    public StudentFacultySearchJPanel(UserAccountDirectory accountDirectory) {
-        initComponents();
-        this.accountDirectory = accountDirectory;
-        initializeComponents();
-        populateTable();
-    }
-
     private void populateTable() {
-        if (accountDirectory == null) {
-            // No data source available; clear table and return
-            DefaultTableModel empty = (DefaultTableModel) tblSearch.getModel();
-            empty.setRowCount(0);
-            return;
-        }
+        if (accountDirectory == null) return;
 
         DefaultTableModel model = (DefaultTableModel) tblSearch.getModel();
         model.setRowCount(0);
 
-        for(UserAccount account : accountDirectory.getUserAccountList()) {
-            if (account.getProfile() instanceof Student || account.getProfile() instanceof Faculty) {
-                Object[] row = new Object[7];
-                row[0] = account.getProfile().getPerson().getUNID();
-                row[1] = account.getProfile().getPerson().getName();
-                row[2] = account.getProfile() instanceof Student ? "Student" : "Faculty";
-                if(account.getProfile() instanceof Student student) {
-                    row[3] = student.getDepartment();
-                } else {
-                    row[3] = ((Faculty)account.getProfile()).getDepartment();
-                }
-                row[4] = account.getProfile().getPerson().getEmail();
-                row[5] = account.getProfile().getPerson().getContactNumber();
-                row[6] = account.getProfile().isActive() ? "YES" : "NO";
-                model.addRow(row);
+        List<UserAccount> accounts = personService.getStudentFacultyAccounts();
+
+        for(UserAccount account : accounts) {
+            Object[] row = new Object[7];
+            row[0] = account.getProfile().getPerson().getUNID();
+            row[1] = account.getProfile().getPerson().getName();
+            row[2] = account.getProfile() instanceof Student ? "Student" : "Faculty";
+            
+            // Get Department (Handles both Student and Faculty Profile types)
+            String deptName = "";
+            if(account.getProfile() instanceof Student student) {
+                deptName = student.getDepartment().toString();
+            } else if (account.getProfile() instanceof Faculty faculty) {
+                deptName = faculty.getDepartment().toString();
             }
+            row[3] = deptName;
+            
+            row[4] = account.getProfile().getPerson().getEmail();
+            row[5] = account.getProfile().getPerson().getContactNumber();
+            row[6] = account.getProfile().isActive() ? "Active" : "Inactive";
+            model.addRow(row);
+        }
+    }
+
+    private void populateTableWithAccounts(java.util.List<UserAccount> accounts) {
+        DefaultTableModel model = (DefaultTableModel) tblSearch.getModel();
+        model.setRowCount(0);
+
+        for (UserAccount account : accounts) {
+            if (!(account.getProfile() instanceof Student) && !(account.getProfile() instanceof Faculty)) continue;
+            Object[] row = new Object[7];
+            row[0] = account.getProfile().getPerson().getUNID();
+            row[1] = account.getProfile().getPerson().getName();
+            row[2] = account.getProfile() instanceof Student ? "Student" : "Faculty";
+            
+            String deptName = "";
+            if (account.getProfile() instanceof Student student) {
+                deptName = student.getDepartment().toString();
+            } else if (account.getProfile() instanceof Faculty faculty) {
+                deptName = faculty.getDepartment().toString();
+            }
+            row[3] = deptName;
+            
+            row[4] = account.getProfile().getPerson().getEmail();
+            row[5] = account.getProfile().getPerson().getContactNumber();
+            row[6] = account.getProfile().isActive() ? "Active" : "Inactive";
+            model.addRow(row);
         }
     }
 
     private void setFieldsEditable(boolean editable) {
-        comboxDepartment.setEnabled(editable && selectedAccount != null && selectedAccount.getProfile() instanceof Faculty);
+        // Only allow Department edit if it's a Faculty member
+        boolean canEditDept = editable && selectedAccount != null && selectedAccount.getProfile() instanceof Faculty;
+        comboxDepartment.setEnabled(canEditDept); 
+        
         txtEmail.setEditable(editable);
         txtContactNumber.setEditable(editable);
-        txtAcademicStatus.setEditable(editable);
+        // Academic status is read-only in this system design for consistency
+        txtAcademicStatus.setEditable(false); 
     }
 
     private void clearFields() {
@@ -300,28 +327,24 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
         }
 
         int unid = Integer.parseInt(tblSearch.getValueAt(selectedRow, 0).toString());
-        for (UserAccount account : accountDirectory.getUserAccountList()) {
-            if (account.getProfile().getPerson().getUNID() == unid) {
-                selectedAccount = account;
-                break;
-            }
-        }
+        
+        // Find the selected account using the UNID
+        selectedAccount = accountDirectory.findUserAccount(String.valueOf(unid)); 
 
         if (selectedAccount != null) {
-            if (selectedAccount.getProfile() instanceof Faculty) {
-                Faculty faculty = (Faculty) selectedAccount.getProfile();
-                comboxDepartment.setSelectedItem(faculty.getDepartment().toString());
-            } else {
-                Student student = (Student) selectedAccount.getProfile();
-                comboxDepartment.setSelectedItem(student.getDepartment().toString());
-            }
+            String role = (String) tblSearch.getValueAt(selectedRow, 2);
+            String deptName = (String) tblSearch.getValueAt(selectedRow, 3);
+            
+            // Set Department ComboBox
+            comboxDepartment.setSelectedItem(deptName);
 
+            // Populate Text Fields
             txtEmail.setText(selectedAccount.getProfile().getPerson().getEmail());
             txtContactNumber.setText(selectedAccount.getProfile().getPerson().getContactNumber());
-            txtAcademicStatus.setText(selectedAccount.getProfile().isActive() ? "YES" : "NO");
-
+            txtAcademicStatus.setText(selectedAccount.getProfile().isActive() ? "Active" : "Inactive");
+            
+            // Set UI state
             setFieldsEditable(false);
-
             btnSave.setEnabled(false);
             btnView.setEnabled(false);
             btnDelete.setEnabled(true);
@@ -334,9 +357,7 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, "Please view a record first");
             return;
         }
-
         setFieldsEditable(true);
-
         btnSave.setEnabled(true);
         btnView.setEnabled(false);
         btnEdit.setEnabled(false);
@@ -351,25 +372,12 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to delete this user?",
-            "Confirm Delete",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete this user?", "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        
         if (confirm == JOptionPane.YES_OPTION) {
             int unid = Integer.parseInt(tblSearch.getValueAt(selectedRow, 0).toString());
-
-            UserAccount accountToRemove = null;
-            for (UserAccount account : accountDirectory.getUserAccountList()) {
-                if (account.getProfile().getPerson().getUNID() == unid) {
-                    accountToRemove = account;
-                    break;
-                }
-            }
-
+            UserAccount accountToRemove = accountDirectory.findUserAccount(String.valueOf(unid));
+            
             if (accountToRemove != null) {
                 accountDirectory.getUserAccountList().remove(accountToRemove);
                 populateTable();
@@ -381,35 +389,36 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        if (selectedAccount == null) {
+        if (selectedAccount == null) return;
+
+        String newEmail = txtEmail.getText();
+        String newContact = txtContactNumber.getText();
+        String newDeptString = (String) comboxDepartment.getSelectedItem();
+        
+        // Input Validation Check (Assignment requirement)
+        if (!DataValidator.isNotEmpty(newEmail) || !DataValidator.isNotEmpty(newContact)) {
+            JOptionPane.showMessageDialog(this, "E-mail and Contact Number cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
+        Department newDept = Department.valueOf(newDeptString);
 
-        if (selectedAccount.getProfile() instanceof Faculty) {
-            Faculty faculty = (Faculty) selectedAccount.getProfile();
-            Object sel = comboxDepartment.getSelectedItem();
-            if (sel != null) {
-                try {
-                    faculty.setDepartment(Department.valueOf(sel.toString()));
-                } catch (IllegalArgumentException ex) {
-                    JOptionPane.showMessageDialog(this, "Invalid department selected.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }
+        // Call PersonService to update the profile (SAFE UPDATE)
+        personService.updatePersonProfile(
+            selectedAccount,
+            newEmail,
+            newContact,
+            newDept
+        );
 
-        selectedAccount.getProfile().getPerson().setEmail(txtEmail.getText());
-        selectedAccount.getProfile().getPerson().setContactNumber(txtContactNumber.getText());
-        selectedAccount.getProfile().setActive(txtAcademicStatus.getText().equalsIgnoreCase("YES"));
-
+        // Refresh table and reset UI
         populateTable();
         clearFields();
         setFieldsEditable(false);
-
         btnSave.setEnabled(false);
-        btnEdit.setEnabled(false);
+        btnEdit.setEnabled(true);
         btnDelete.setEnabled(true);
         btnView.setEnabled(true);
-
         selectedAccount = null;
 
         JOptionPane.showMessageDialog(this, "Record updated successfully");
@@ -420,124 +429,71 @@ public class StudentFacultySearchJPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_txtSearchFieldActionPerformed
 
     private void btnSearchIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchIDActionPerformed
-        if (accountDirectory == null) {
-            JOptionPane.showMessageDialog(this, "No data available to search.");
-            return;
-        }
+        if (accountDirectory == null) { JOptionPane.showMessageDialog(this, "No data available to search."); return; }
 
         String query = txtSearchField.getText().trim();
-        if (query.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter an ID to search.");
-            return;
-        }
+        if (query.isEmpty()) { JOptionPane.showMessageDialog(this, "Please enter an ID to search."); return; }
 
-        int id;
-        try {
-            id = Integer.parseInt(query);
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid numeric ID.");
-            return;
-        }
+        try { Integer.parseInt(query); } 
+        catch (NumberFormatException ex) { JOptionPane.showMessageDialog(this, "Please enter a valid numeric ID."); return; }
 
+        // Find matches by UNID
         java.util.List<UserAccount> matches = new java.util.ArrayList<>();
-        for (UserAccount account : accountDirectory.getUserAccountList()) {
-            if (account.getProfile() instanceof Student || account.getProfile() instanceof Faculty) {
-                if (account.getProfile().getPerson().getUNID() == id) {
-                    matches.add(account);
-                }
+        for (UserAccount account : personService.getStudentFacultyAccounts()) {
+            if (String.valueOf(account.getProfile().getPerson().getUNID()).equals(query)) {
+                matches.add(account);
             }
         }
-
         populateTableWithAccounts(matches);
         clearFields();
         selectedAccount = null;
     }//GEN-LAST:event_btnSearchIDActionPerformed
 
     private void btnSearchNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchNameActionPerformed
-        if (accountDirectory == null) {
-            JOptionPane.showMessageDialog(this, "No data available to search.");
-            return;
-        }
+        if (accountDirectory == null) { JOptionPane.showMessageDialog(this, "No data available to search."); return; }
 
         String query = txtSearchField.getText().trim();
-        if (query.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a name to search.");
-            return;
-        }
+        if (query.isEmpty()) { JOptionPane.showMessageDialog(this, "Please enter a name to search."); return; }
 
         String qLower = query.toLowerCase();
         java.util.List<UserAccount> matches = new java.util.ArrayList<>();
-        for (UserAccount account : accountDirectory.getUserAccountList()) {
-            if (account.getProfile() instanceof Student || account.getProfile() instanceof Faculty) {
-                String name = account.getProfile().getPerson().getName();
-                if (name != null && name.toLowerCase().contains(qLower)) {
-                    matches.add(account);
-                }
+        for (UserAccount account : personService.getStudentFacultyAccounts()) {
+            String name = account.getProfile().getPerson().getName();
+            if (name != null && name.toLowerCase().contains(qLower)) {
+                matches.add(account);
             }
         }
-
         populateTableWithAccounts(matches);
         clearFields();
         selectedAccount = null;
     }//GEN-LAST:event_btnSearchNameActionPerformed
 
     private void btnSearchDepartmentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchDepartmentActionPerformed
-        if (accountDirectory == null) {
-            JOptionPane.showMessageDialog(this, "No data available to search.");
-            return;
-        }
+        if (accountDirectory == null) { JOptionPane.showMessageDialog(this, "No data available to search."); return; }
 
         String query = txtSearchField.getText().trim();
-        if (query.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a department to search.");
-            return;
-        }
+        if (query.isEmpty()) { JOptionPane.showMessageDialog(this, "Please enter a department to search."); return; }
 
-        String qLower = query.toLowerCase();
+        String qUpper = query.toUpperCase(); // Departments are stored as uppercase enums
         java.util.List<UserAccount> matches = new java.util.ArrayList<>();
-        for (UserAccount account : accountDirectory.getUserAccountList()) {
-            if (account.getProfile() instanceof Student) {
-                Student s = (Student) account.getProfile();
-                if (s.getDepartment() != null) {
-                    String deptStr = s.getDepartment().toString();
-                    if (deptStr != null && deptStr.toLowerCase().contains(qLower)) matches.add(account);
-                }
-            } else if (account.getProfile() instanceof Faculty) {
-                Faculty f = (Faculty) account.getProfile();
-                if (f.getDepartment() != null) {
-                    String deptStr = f.getDepartment().toString();
-                    if (deptStr != null && deptStr.toLowerCase().contains(qLower)) matches.add(account);
-                }
+        
+        for (UserAccount account : personService.getStudentFacultyAccounts()) {
+            String deptStr = "";
+            if (account.getProfile() instanceof Student student) {
+                deptStr = student.getDepartment().toString();
+            } else if (account.getProfile() instanceof Faculty faculty) {
+                deptStr = faculty.getDepartment().toString();
+            }
+            
+            if (deptStr != null && deptStr.contains(qUpper)) {
+                matches.add(account);
             }
         }
-
         populateTableWithAccounts(matches);
         clearFields();
         selectedAccount = null;
     }//GEN-LAST:event_btnSearchDepartmentActionPerformed
 
-    // Helper: populate table rows from a list of UserAccount (Student/Faculty only)
-    private void populateTableWithAccounts(java.util.List<UserAccount> accounts) {
-        DefaultTableModel model = (DefaultTableModel) tblSearch.getModel();
-        model.setRowCount(0);
-
-        for (UserAccount account : accounts) {
-            if (!(account.getProfile() instanceof Student) && !(account.getProfile() instanceof Faculty)) continue;
-            Object[] row = new Object[7];
-            row[0] = account.getProfile().getPerson().getUNID();
-            row[1] = account.getProfile().getPerson().getName();
-            row[2] = account.getProfile() instanceof Student ? "Student" : "Faculty";
-            if (account.getProfile() instanceof Student) {
-                row[3] = ((Student) account.getProfile()).getDepartment();
-            } else {
-                row[3] = ((Faculty) account.getProfile()).getDepartment();
-            }
-            row[4] = account.getProfile().getPerson().getEmail();
-            row[5] = account.getProfile().getPerson().getContactNumber();
-            row[6] = account.getProfile().isActive() ? "YES" : "NO";
-            model.addRow(row);
-        }
-    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
