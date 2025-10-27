@@ -6,25 +6,29 @@ package UI.RegistrarRole;
 
 import Model.Student;
 import Model.FinancialRecord;
-import Model.Department; // Your Department enum
+import Model.Department; 
 import Model.Person;
+import Model.FinancialService; 
+import Model.User.UserAccount;
+import Model.accesscontrol.ConfigureJTable; 
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.util.List;
-import java.util.ArrayList; 
-// import Service.FinancialService; // Assuming a service class for business logic
-// import Service.DataStore; // Assuming a central repository
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  *
  * @author jayan
  */
 public class FinancialReconciliationJPanel extends javax.swing.JPanel {
 
-    // private FinancialService financialService; 
+    private final FinancialService financialService;
     
     public FinancialReconciliationJPanel() {
         initComponents();
-        // this.financialService = new FinancialService();
+        this.financialService = new FinancialService();
         initializeFilters();
         resetSummaryFields();
     }
@@ -37,7 +41,7 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
         
         // Populate Department Dropdown using the Enum
         jComboBoxDepartment.removeAllItems();
-        jComboBoxDepartment.addItem("All Departments"); // Option to view aggregated data
+        jComboBoxDepartment.addItem("All Departments");
         for (Department dept : Department.values()) {
             jComboBoxDepartment.addItem(dept.toString());
         }
@@ -48,57 +52,62 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
         fieldTotalUnpaidTution.setText("N/A");
         fieldDeptRevenue.setText("N/A");
         
-        // Clear table initially
         DefaultTableModel model = (DefaultTableModel) tblFinancialRecon.getModel();
         model.setRowCount(0);
     }
     
     private void populateStatusTable(String semester) {
         DefaultTableModel model = (DefaultTableModel) tblFinancialRecon.getModel();
-        model.setRowCount(0); // Clear old data
+        model.setRowCount(0); 
 
-        // --- MOCK LOGIC: Replace with call to FinancialService.getTuitionStatus(semester) ---
-        List<FinancialRecord> records = createMockFinancialData(semester);
-        // --- END MOCK LOGIC ---
+        // Use the centralized list of financial records
+        List<FinancialRecord> records = financialService.getRecordsBySemester(semester);
+        
+        // Map to aggregate [Billed, Paid] amounts by Student UNID
+        Map<Integer, Double[]> studentNetData = new HashMap<>(); 
         
         for (FinancialRecord record : records) {
-            Object[] row = new Object[5];
-            row[0] = record.getStudent().getPerson().getUNID();
-            row[1] = record.getStudent().getPerson().getName();
+            int unid = record.getStudent().getPerson().getUNID();
             
-            // Assume the service provides net billed and paid amounts
-            double billed = 2000.00; // Mock Billed
-            double paid = record.getType().equals("PAID") ? record.getAmount() : 0.00; // Mock Paid
-            String status = (billed - paid) > 0 ? "UNPAID" : "PAID OFF";
-
-            row[2] = String.format("$%.2f", billed);
-            row[3] = String.format("$%.2f", paid);
-            row[4] = status;
-            model.addRow(row);
+            // Get or initialize [Billed, Paid] array
+            Double[] net = studentNetData.getOrDefault(unid, new Double[]{0.0, 0.0}); 
+            
+            if (record.getType().equalsIgnoreCase("BILLED")) {
+                net[0] += record.getAmount();
+            } else if (record.getType().equalsIgnoreCase("PAID")) {
+                net[1] += record.getAmount();
+            }
+            studentNetData.put(unid, net);
         }
-    }
-    
-    // --- Mock Data Placeholder ---
-    private List<FinancialRecord> createMockFinancialData(String semester) {
-        List<FinancialRecord> mockList = new ArrayList<>();
-        // Assuming FinancialRecord constructor is: FinancialRecord(transactionID, student, amount, type, semester, date)
-        
-        // Need mock Student objects (replace with DataStore lookup)
-        Person p1 = new Person("Mock Student 1", "s1@uni.edu", "555-1000"); 
-        Student s1 = new Student(p1, Department.IS);
-        s1.setCreditsCompleted(8); 
-        
-        mockList.add(new FinancialRecord("TRX001", s1, 2000.00, "BILLED", semester, "2025-08-01"));
-        mockList.add(new FinancialRecord("TRX002", s1, 1500.00, "PAID", semester, "2025-08-15")); // Partially paid
-        
-        Person p2 = new Person("Mock Student 2", "s2@uni.edu", "555-2000"); 
-        Student s2 = new Student(p2, Department.CS);
-        s2.setCreditsCompleted(4); 
-        
-        mockList.add(new FinancialRecord("TRX003", s2, 1000.00, "BILLED", semester, "2025-08-01"));
-        mockList.add(new FinancialRecord("TRX004", s2, 1000.00, "PAID", semester, "2025-09-01")); // Fully paid
 
-        return mockList;
+        // Populate the table using the aggregated data
+        for (Map.Entry<Integer, Double[]> entry : studentNetData.entrySet()) {
+            
+            // --- FIX: Safely retrieve and cast the Student object ---
+            // 1. Find the UserAccount using the UNID (key is Integer, needs to be String for findUserAccount)
+            UserAccount ua = ConfigureJTable.directory.findUserAccount(String.valueOf(entry.getKey()));
+            
+            if (ua == null || !(ua.getProfile() instanceof Student)) {
+                continue; 
+            }
+            // 2. Cast the Profile to a Student object
+            Student student = (Student) ua.getProfile(); 
+            // --- END FIX ---
+            
+            double billed = entry.getValue()[0];
+            double paid = entry.getValue()[1];
+            double balance = billed - paid;
+            
+            String status = balance > 0 ? "UNPAID" : (balance == 0 ? "PAID OFF" : "OVERPAID");
+
+            model.addRow(new Object[]{
+                entry.getKey(), // Student ID (UNID)
+                student.getPerson().getName(), // Access Name correctly
+                String.format("$%,.2f", billed),
+                String.format("$%,.2f", paid),
+                status
+            });
+        }
     }
 
     /**
@@ -244,7 +253,7 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
     private void btnGenerateReportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGenerateReportActionPerformed
         // TODO add your handling code here:
         String semester = (String) jComboBoxSemester.getSelectedItem();
-        String department = (String) jComboBoxDepartment.getSelectedItem();
+        String departmentFilter = (String) jComboBoxDepartment.getSelectedItem();
         
         if (semester == null) {
              JOptionPane.showMessageDialog(this, "Please select a semester.", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -254,27 +263,29 @@ public class FinancialReconciliationJPanel extends javax.swing.JPanel {
         // 1. Monitor tuition payment status for all enrolled students.
         populateStatusTable(semester);
         
-        // 2. Generate financial reports per semester (Requires FinancialService call)
-        // Mock calculations based on dummy data:
-        double collected = 85000.00;
-        double unpaid = 15000.00;
-        double deptRevenue = 0.00;
+        // 2. Calculate Total Revenue Summary (already calculated collected/unpaid totals)
+        Map<String, Double> totalSummary = financialService.calculateTotalRevenue(semester);
+        double collected = totalSummary.getOrDefault("COLLECTED", 0.0);
+        double unpaid = totalSummary.getOrDefault("UNPAID", 0.0);
 
-        // Apply department filter for breakdown
-        if (department != null && !department.equals("All Departments")) {
-            // NOTE: In a live app, this data would come from the service layered by department
-            deptRevenue = department.equals("IS") ? 45000.00 : 40000.00; 
+    // 3. Calculate Department Breakdown using the updated service logic
+        Map<String, Double> deptRevenueMap = financialService.calculateDepartmentRevenue(semester);
+        double specificDeptRevenue = 0.0;
+
+        if (departmentFilter.equals("All Departments")) {
+        // If "All Departments" is selected, the revenue is the total collected.
+            specificDeptRevenue = collected;
         } else {
-            // Show aggregated data if 'All Departments' is selected
-            deptRevenue = collected; 
+        // If a specific department (e.g., "CS") is selected, pull the value from the map.
+            specificDeptRevenue = deptRevenueMap.getOrDefault(departmentFilter, 0.0);
         }
-        
-        // Update Summary Fields
+    
+    // Update Summary Fields
         fieldTotalTutionCollected.setText(String.format("$%,.2f", collected));
         fieldTotalUnpaidTution.setText(String.format("$%,.2f", unpaid));
-        
-        // Display the per-department breakdown
-        fieldDeptRevenue.setText(String.format("$%,.2f", deptRevenue));
+    
+    // Display the per-department breakdown
+        fieldDeptRevenue.setText(String.format("$%,.2f", specificDeptRevenue));
 
         JOptionPane.showMessageDialog(this, "Financial reports generated successfully for " + semester, "Success", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_btnGenerateReportActionPerformed

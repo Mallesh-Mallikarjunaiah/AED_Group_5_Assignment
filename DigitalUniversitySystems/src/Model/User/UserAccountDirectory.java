@@ -48,6 +48,24 @@ public class UserAccountDirectory {
         return ua;
     }
 
+    public UserAccount findUserAccountByName(String name) {
+    if (name == null || name.trim().isEmpty()) {
+        return null;
+    }
+    String lowerName = name.toLowerCase();
+
+    for (UserAccount ua : useraccountlist) {
+        // Only search for profiles that have a Person object (Admin, Student, Faculty, Registrar)
+        if (ua.getProfile() != null && ua.getProfile().getPerson() != null) {
+            String personName = ua.getProfile().getPerson().getName();
+            if (personName != null && personName.toLowerCase().contains(lowerName)) {
+                return ua;
+            }
+        }
+    }
+    return null;
+}
+    
     public UserAccount findUserAccount(String id) {
         for (UserAccount ua : useraccountlist) {
             if (ua.isMatch(id)) {
