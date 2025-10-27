@@ -3,86 +3,171 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
-import Model.Enrollment;
-import Model.Student;
-import Model.CourseOffering;
-import java.util.ArrayList;
+
+import Model.*;
+import Model.accesscontrol.ConfigureJTable; // Central Data Source
+import Model.User.UserAccount;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 /**
  *
  * @author MALLESH
  */
 public class GraduationAuditJPanel extends javax.swing.JPanel {
     private JPanel mainWorkArea;
+    private UserAccount userAccount;
     private Student student;
-    private ArrayList<Enrollment> completedEnrollments;
+    
+    // --- Data Source ---
+    // The list of completed (graded) courses for this student
+    private List<Enrollment> completedEnrollments;
 
     private static final int TOTAL_REQUIRED_CREDITS = 32;
-    private static final String MANDATORY_COURSE_ID = "INFO 5100";
+    private static final String MANDATORY_COURSE_ID = "INFO 5100"; // Based on ConfigureJTable data
+    
     /**
-     * Creates new form GraduationAuditJPanel
+     * Constructor with persistent data initialization
      */
-    public GraduationAuditJPanel(JPanel mainWorkArea, Student student, ArrayList<Enrollment> completedEnrollments) {
-        initComponents();
+    public GraduationAuditJPanel(JPanel mainWorkArea, UserAccount userAccount) {
         initComponents();
         this.mainWorkArea = mainWorkArea;
-        this.student = student;
-        this.completedEnrollments = completedEnrollments;
+        this.userAccount = userAccount;
+        this.student = (Student) userAccount.getProfile();
+        
+        // --- DATA INTEGRATION FIX ---
+        loadCompletedEnrollmentsFromCentralStore(); 
+        
+        // Make fields read-only
+        txtName.setEditable(false);
+        txtUniversityID.setEditable(false);
+        txtProgram.setEditable(false);
+        txtTotalCreditEarned.setEditable(false);
+        txtMandatory.setEditable(false);
+        jTextField6.setEditable(false);
 
         populateStudentInfo();
         populateCoursesCompletedTable();
         calculateCreditSummary();
+        checkGraduationEligibility();
     }
-
-    GraduationAuditJPanel() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    
+    /**
+     * FIX: Loads completed/graded enrollments from the central ConfigureJTable.
+     */
+    private void loadCompletedEnrollmentsFromCentralStore() {
+        int studentUNID = student.getPerson().getUNID();
+        
+        // Filter the central list for enrollments belonging to this student AND marked completed/graded
+        completedEnrollments = ConfigureJTable.enrollmentList.stream()
+            .filter(e -> e.getStudent().getPerson().getUNID() == studentUNID)
+            .filter(Enrollment::isCompleted) // Assuming isCompleted checks for a grade != "N/A"
+            .collect(Collectors.toList());
     }
-        private void populateStudentInfo() {
+    
+    /**
+     * Populate student information
+     */
+    private void populateStudentInfo() {
         txtName.setText(student.getPerson().getName());
-        txtUniversityID.setText(student.getPerson().getEmail()); // assuming email as ID
-        txtProgram.setText(student.getDepartment().toString());
+        txtUniversityID.setText(String.valueOf(student.getPerson().getUNID()));
+        txtProgram.setText("MSIS - " + student.getDepartment().toString()); // Assuming MSIS
     }
-        private void populateCoursesCompletedTable() {
+    
+    /**
+     * Populate courses completed table
+     */
+    private void populateCoursesCompletedTable() {
         DefaultTableModel model = (DefaultTableModel) tblCoursesCompleted.getModel();
         model.setRowCount(0);
 
         for (Enrollment e : completedEnrollments) {
-            if (e.getStudent().equals(student) && e.isCompleted()) {
-                CourseOffering co = e.getCourseOffering();
-                Object[] row = new Object[5];
-                row[0] = co.getCourse().getCourseID();
-                row[1] = co.getCourse().getName();
-                row[2] = co.getCourse().getCredits();
-                row[3] = co.getSemester();
-                row[4] = e.getGrade() != null ? e.getGrade() : "In Progress";
-                model.addRow(row);
-            }
+            CourseOffering co = e.getCourseOffering();
+            Object[] row = new Object[5];
+            row[0] = co.getCourse().getCourseID();
+            row[1] = co.getCourse().getName();
+            row[2] = co.getCourse().getCredits();
+            row[3] = co.getSemester();
+            row[4] = e.getGrade() != null ? e.getGrade() : "In Progress";
+            model.addRow(row);
         }
     }
-         private void calculateCreditSummary() {
+    
+    /**
+     * Calculate credit summary and check requirements
+     */
+    private void calculateCreditSummary() {
         int totalEarned = 0;
         boolean mandatoryCompleted = false;
+        int electiveCredits = 0;
 
         for (Enrollment e : completedEnrollments) {
-            if (e.getStudent().equals(student) && e.isCompleted()) {
-                totalEarned += e.getCourseOffering().getCourse().getCredits();
+            int credits = e.getCourseOffering().getCourse().getCredits();
+            totalEarned += credits;
 
-                // Check mandatory course
-                if (e.getCourseOffering().getCourse().getCourseID().equalsIgnoreCase(MANDATORY_COURSE_ID)) {
-                    mandatoryCompleted = true;
-                }
+            // Check mandatory course (INFO 5100 - 4 credits)
+            if (e.getCourseOffering().getCourse().getCourseID().equalsIgnoreCase(MANDATORY_COURSE_ID)) {
+                mandatoryCompleted = true;
+                // Exclude the mandatory course credits from the elective total for accurate breakdown
+            } else {
+                electiveCredits += credits;
             }
         }
 
         // Populate summary fields
         txtTotalCreditEarned.setText(String.valueOf(totalEarned));
-        txtMandatory.setText(mandatoryCompleted ? "Completed" : "Pending");
+        txtMandatory.setText(mandatoryCompleted ? "Completed ✓" : "Pending ✗");
+        // Total Credits Exceeding Core (Total Earned - Mandatory Credits)
+        jTextField6.setText(String.valueOf(Math.max(0, totalEarned - 4))); 
 
-        int extraCredits = Math.max(0, totalEarned - 4); // excluding core course
-        jTextField6.setText(String.valueOf(extraCredits));
-
-        lblTotalCreditsRequired.setText("Total Credits Required: " + TOTAL_REQUIRED_CREDITS + " hours");
+        // Update label with progress
+        int remaining = Math.max(0, TOTAL_REQUIRED_CREDITS - totalEarned);
+        lblTotalCreditsRequired.setText("Total Credits Required: " + TOTAL_REQUIRED_CREDITS + 
+                                         " (Remaining: " + remaining + ")");
+        
+        // Update student's credits completed (CRUCIAL for load limit checks)
+        student.setCreditsCompleted(totalEarned); 
+    }
+    
+    /**
+     * Check graduation eligibility and display message (Assignment Requirement)
+     */
+    private void checkGraduationEligibility() {
+        int totalEarned = Integer.parseInt(txtTotalCreditEarned.getText());
+        boolean mandatoryCompleted = txtMandatory.getText().contains("✓");
+        
+        if (totalEarned >= TOTAL_REQUIRED_CREDITS && mandatoryCompleted) {
+            JOptionPane.showMessageDialog(this, 
+                "🎓 Congratulations! You are eligible to graduate!\n\n" +
+                "✓ Completed " + totalEarned + "/" + TOTAL_REQUIRED_CREDITS + " credits\n" +
+                "✓ Core course INFO 5100 completed\n\n" +
+                "Please contact the registrar's office to apply for graduation.", 
+                "Graduation Eligible", 
+                JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            StringBuilder message = new StringBuilder("You are NOT yet eligible to graduate.\n\n");
+            
+            if (totalEarned < TOTAL_REQUIRED_CREDITS) {
+                int needed = TOTAL_REQUIRED_CREDITS - totalEarned;
+                message.append("✗ Need ").append(needed).append(" more credits\n");
+            } else {
+                message.append("✓ Credit requirement met (").append(totalEarned).append("/32)\n");
+            }
+            
+            if (!mandatoryCompleted) {
+                message.append("✗ Core course INFO 5100 (4 credits) NOT completed\n");
+            } else {
+                message.append("✓ Core course INFO 5100 completed\n");
+            }
+            
+            JOptionPane.showMessageDialog(this, 
+                message.toString(), 
+                "Graduation Requirements", 
+                JOptionPane.WARNING_MESSAGE);
+        }
     }
          
     /**

@@ -3,90 +3,158 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
-import Model.FinancialRecord;
-import Model.Student;
+
+
+import Model.*;
 import Model.User.UserAccount;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.table.DefaultTableModel;
-
 /**
  *
  * @author MALLESH
  */
 public class TuitionPaymentJPanel extends javax.swing.JPanel {
-  private UserAccount userAccount;
+    private JPanel workArea;
+    private UserAccount userAccount;
     private Student student;
-    private ArrayList<FinancialRecord> paymentHistory;
-    private double currentBalance;
-    private double outstandingBalance;
-
+    // Local list simulating the student's payment history records in the central store
+    private ArrayList<FinancialRecord> paymentHistory; 
 
     /**
-     * Creates new form TuitionPaymentJPanel
+     * Constructor with mock data initialization
      */
-    public TuitionPaymentJPanel() {
-      this.paymentHistory = new ArrayList<>();
-        initDemoData();
-        populatePaymentTable();
-        refreshBalances();
-    }
-         public TuitionPaymentJPanel(UserAccount account, ArrayList<FinancialRecord> records) {
+    public TuitionPaymentJPanel(JPanel workArea, UserAccount account) {
         initComponents();
+        this.workArea = workArea;
         this.userAccount = account;
         this.student = (Student) account.getProfile();
-        this.paymentHistory = records != null ? records : new ArrayList<>();
+        this.paymentHistory = new ArrayList<>();
+        
+        // Make fields read-only except payment amount
+        txtStudentName.setEditable(false);
+        txtCurrentBalance.setEditable(false);
+        txtOutstandingTuition.setEditable(false);
+        
+        // Initialize mock data
+        initializeMockPaymentHistory();
+        
         txtStudentName.setText(student.getPerson().getName());
-        calculateBalances();
         populatePaymentTable();
         refreshBalances();
-         }
-         
-      private void initDemoData() {
-        // Fake data for testing UI
-        txtStudentName.setText("John Doe");
-        this.currentBalance = 2000.00;
-        this.outstandingBalance = 6000.00;
-        paymentHistory.add(new FinancialRecord("TXN-1001", null, 3000, "BILLED", "Fall 2025", "2025-09-05"));
-        paymentHistory.add(new FinancialRecord("TXN-1002", null, 1000, "PAID", "Fall 2025", "2025-09-20"));
+    }
+    
+    /**
+     * Initialize mock payment history
+     */
+    private void initializeMockPaymentHistory() {
+        // Fall 2023 - Billed and Paid (6000 paid)
+        FinancialRecord bill1 = new FinancialRecord("TXN-1001", student, 6000.0, "BILLED", "Fall 2023", "2023-09-01");
+        FinancialRecord pay1 = new FinancialRecord("TXN-1002", student, 6000.0, "PAID", "Fall 2023", "2023-09-15");
+        
+        // Spring 2024 - Billed and Paid (6000 paid)
+        FinancialRecord bill2 = new FinancialRecord("TXN-1003", student, 6000.0, "BILLED", "Spring 2024", "2024-01-15");
+        FinancialRecord pay2 = new FinancialRecord("TXN-1004", student, 6000.0, "PAID", "Spring 2024", "2024-02-01");
+        
+        // Fall 2024 - Billed and Partially Paid (7500 billed, 3000 paid) -> Balance Due: 4500.00
+        FinancialRecord bill3 = new FinancialRecord("TXN-1005", student, 7500.0, "BILLED", "Fall 2024", "2024-09-01");
+        FinancialRecord pay3 = new FinancialRecord("TXN-1006", student, 3000.0, "PAID", "Fall 2024", "2024-09-20");
+        
+        paymentHistory.add(bill1);
+        paymentHistory.add(pay1);
+        paymentHistory.add(bill2);
+        paymentHistory.add(pay2);
+        paymentHistory.add(bill3);
+        paymentHistory.add(pay3);
+        
+        // Calculate and set student's persistent tuition balance for other use cases (e.g., Transcript Gatekeeper)
+        calculateBalances();
     }
 
+    /**
+     * Calculates current balance and outstanding tuition and sets student's persistent balance.
+     */
     private void calculateBalances() {
         double billed = 0, paid = 0;
+        
         for (FinancialRecord fr : paymentHistory) {
-            if (fr.getType().equalsIgnoreCase("BILLED")) billed += fr.getAmount();
-            if (fr.getType().equalsIgnoreCase("PAID")) paid += fr.getAmount();
+            if (fr.getType().equalsIgnoreCase("BILLED")) {
+                billed += fr.getAmount();
+            } else if (fr.getType().equalsIgnoreCase("PAID")) {
+                paid += fr.getAmount();
+            } else if (fr.getType().equalsIgnoreCase("REFUND")) {
+                paid -= fr.getAmount(); // Refunds decrease net amount paid
+            }
         }
-        outstandingBalance = billed - paid;
-        currentBalance = paid;
+        
+        double outstandingBalance = billed - paid;
+        student.setTuitionBalance(outstandingBalance);
     }
 
+    /**
+     * Refresh balance display fields
+     */
     private void refreshBalances() {
-        txtCurrentBalance.setText(String.format("$%.2f", currentBalance));
-        txtOutstandingTuition.setText(String.format("$%.2f", outstandingBalance));
+        double totalPaid = 0;
+        double totalBilled = 0;
+        
+        for (FinancialRecord fr : paymentHistory) {
+            if (fr.getType().equalsIgnoreCase("PAID")) {
+                totalPaid += fr.getAmount();
+            } else if (fr.getType().equalsIgnoreCase("BILLED")) {
+                totalBilled += fr.getAmount();
+            } else if (fr.getType().equalsIgnoreCase("REFUND")) {
+                totalPaid -= fr.getAmount();
+            }
+        }
+        
+        double outstanding = totalBilled - totalPaid;
+        
+        txtCurrentBalance.setText(String.format("$%.2f", totalPaid));
+        txtOutstandingTuition.setText(String.format("$%.2f", outstanding));
     }
 
+    /**
+     * Populate payment history table
+     */
     private void populatePaymentTable() {
         DefaultTableModel model = (DefaultTableModel) tblPaymentHistory.getModel();
         model.setRowCount(0);
+        
+        double runningBalance = 0;
+        
         for (FinancialRecord fr : paymentHistory) {
+            // Calculate running balance based on transaction type
+            if (fr.getType().equalsIgnoreCase("BILLED")) {
+                runningBalance += fr.getAmount();
+            } else if (fr.getType().equalsIgnoreCase("PAID")) {
+                runningBalance -= fr.getAmount();
+            } else if (fr.getType().equalsIgnoreCase("REFUND")) {
+                runningBalance += fr.getAmount(); // A refund increases the amount owed/decreases net paid
+            }
+            
             Object[] row = new Object[6];
             row[0] = fr.getDate();
             row[1] = fr.getTransactionID();
             row[2] = fr.getType();
             row[3] = fr.getSemester();
             row[4] = String.format("$%.2f", fr.getAmount());
-            row[5] = fr.getType().equalsIgnoreCase("PAID") ? String.format("$%.2f", currentBalance) : "-";
+            row[5] = String.format("$%.2f", runningBalance); // Display Balance After Transaction
             model.addRow(row);
         }
     }
 
+    /**
+     * Get current date as string
+     */
     private String getCurrentDate() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(new Date());
     }
+
 
 
     /**
@@ -266,44 +334,73 @@ public class TuitionPaymentJPanel extends javax.swing.JPanel {
 
     private void btnPayBillActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPayBillActionPerformed
         // TODO add your handling code here:
-       try {
-            double paymentAmount = Double.parseDouble(txtPaymentAmount.getText().trim());
+        try {
+            String paymentText = txtPaymentAmount.getText().trim();
+            
+            if (paymentText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a payment amount.", "Empty Amount", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            double paymentAmount = Double.parseDouble(paymentText);
+            
             if (paymentAmount <= 0) {
-                JOptionPane.showMessageDialog(this, "Enter a valid payment amount.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Enter a valid payment amount greater than $0.", "Invalid Amount", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            double currentOutstanding = student.getTuitionBalance();
+            
+            // CRITICAL CHECK 1: If balance is already zero or negative (Assignment Requirement)
+            if (currentOutstanding <= 0) {
+                JOptionPane.showMessageDialog(this, "No balance due. Your account is up to date!", "No Balance", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
-            if (paymentAmount > outstandingBalance) {
-                JOptionPane.showMessageDialog(this, "Payment exceeds outstanding tuition.", "Warning", JOptionPane.WARNING_MESSAGE);
+            // CRITICAL CHECK 2: Check if payment exceeds outstanding balance (Assignment Requirement)
+            if (paymentAmount > currentOutstanding) {
+                JOptionPane.showMessageDialog(this, 
+                    "Payment amount ($" + String.format("%.2f", paymentAmount) + 
+                    ") exceeds outstanding tuition ($" + String.format("%.2f", currentOutstanding) + ").\n\n" +
+                    "Please enter an amount equal to or less than your outstanding balance.", 
+                    "Payment Exceeds Balance", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Update balances
-            outstandingBalance -= paymentAmount;
-            currentBalance += paymentAmount;
-
-            // Add new FinancialRecord
+            // --- Process payment (Update persistence) ---
             String transactionId = "TXN-" + System.currentTimeMillis();
             FinancialRecord newPayment = new FinancialRecord(
                     transactionId,
                     student,
                     paymentAmount,
                     "PAID",
-                    "Fall 2025", // You can replace with current semester dynamically
+                    "Fall 2024", 
                     getCurrentDate()
             );
 
+            // Add new payment record to the history list
             paymentHistory.add(newPayment);
-
-            JOptionPane.showMessageDialog(this, "Payment successful! Thank you.", "Payment Confirmation", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Update student's tuition balance (Persistence update)
+            student.setTuitionBalance(currentOutstanding - paymentAmount);
+            
+            double newBalance = student.getTuitionBalance();
+            
+            // Confirmation Dialog
+            JOptionPane.showMessageDialog(this, 
+                "Payment Successful!\n\n" +
+                "Amount Paid: $" + String.format("%.2f", paymentAmount) + "\n" +
+                "Remaining Balance: $" + String.format("%.2f", newBalance), 
+                "Payment Confirmation", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Refresh display
             populatePaymentTable();
             refreshBalances();
             txtPaymentAmount.setText("");
 
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Please enter a numeric amount.", "Error", JOptionPane.ERROR_MESSAGE);
-        }                           
-
+            JOptionPane.showMessageDialog(this, "Please enter a valid numeric amount.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnPayBillActionPerformed
     
 

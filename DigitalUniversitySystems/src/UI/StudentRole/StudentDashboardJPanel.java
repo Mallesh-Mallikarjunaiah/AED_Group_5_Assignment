@@ -3,40 +3,74 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package UI.StudentRole;
+
+import Model.*;
 import Model.User.UserAccount;
 import Model.User.UserAccountDirectory;
-import Model.Student;
-import Model.Enrollment;
-import Model.CourseOffering;
-import Model.Person;
 import Model.ProfileManagementDialog;
+import UI.MainJFrame;
 import java.awt.CardLayout;
-import java.util.ArrayList;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-
+import javax.swing.JFrame; 
+import java.util.Arrays;
 /**
  *
  * @author jayan
  */
 public class StudentDashboardJPanel extends javax.swing.JPanel {
+    
     private UserAccount userAccount;
     private UserAccountDirectory accountDirectory;
-    private JPanel mainWorkArea;
-    private ArrayList<CourseOffering> courseOfferings;
-    private ArrayList<Enrollment> enrollments;
-    /**
-     * Creates new form StudentDashboardJPanel
-     */
+    private JPanel mainWorkArea; // The main Content Pane (workArea from MainJFrame)
+    private Student loggedInStudent;
+    
+    // Panel References (Instantiated once, then reused or refreshed)
+    private CourseRegistrationJPanel courseRegistrationPanel;
+    private GraduationAuditJPanel graduationAuditPanel;
+    private TranscriptJPanel transcriptPanel;
+    private TuitionPaymentJPanel tuitionPaymentPanel;
+    
     public StudentDashboardJPanel(JPanel mainWorkArea, UserAccountDirectory accountDirectory, UserAccount account) {
         initComponents();
-     this.mainWorkArea = mainWorkArea;
+        this.mainWorkArea = mainWorkArea;
         this.accountDirectory = accountDirectory;
         this.userAccount = account;
-        this.courseOfferings = new ArrayList<>();
-        this.enrollments = new ArrayList<>();
+        
+        if (userAccount.getProfile() instanceof Student) {
+            this.loggedInStudent = (Student) userAccount.getProfile();
+        } else {
+             this.loggedInStudent = null; 
+             JOptionPane.showMessageDialog(this, "Profile error. Please log in again.", "Error", JOptionPane.ERROR_MESSAGE);
+             return;
+        }
+        
+        lblTitle.setText("Welcome " + loggedInStudent.getPerson().getName());
+        workArea.setLayout(new CardLayout());
+    }
+
+
+    /**
+     * Helper method to switch to a feature panel.
+     */
+    private void showFeaturePanel(String panelName, JPanel panel) {
+        CardLayout layout = (CardLayout) workArea.getLayout();
+        
+        // This logic ensures the panel is added only once to the container
+        boolean isPanelAdded = false;
+        for (java.awt.Component comp : workArea.getComponents()) {
+            if (comp.getName() != null && comp.getName().equals(panelName)) {
+                isPanelAdded = true;
+                break;
+            }
+        }
+
+        if (!isPanelAdded) {
+            workArea.add(panel, panelName);
+            panel.setName(panelName); // Set name for future reference
+        }
+        layout.show(workArea, panelName);
     }
 
     /**
@@ -182,44 +216,78 @@ public class StudentDashboardJPanel extends javax.swing.JPanel {
 
     private void btnGraduationAuditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGraduationAuditActionPerformed
         // TODO add your handling code here:
-        GraduationAuditJPanel panel = new GraduationAuditJPanel();
-        splitPane.setRightComponent(panel);
+        if (graduationAuditPanel == null) {
+            graduationAuditPanel = new GraduationAuditJPanel(workArea, userAccount);
+        }
+        // CRITICAL: We must re-instantiate/re-audit the panel every time 
+        // to reflect the latest earned credits/grades/etc.
+        graduationAuditPanel = new GraduationAuditJPanel(workArea, userAccount);
+        showFeaturePanel("GraduationAuditJPanel", graduationAuditPanel);
     }//GEN-LAST:event_btnGraduationAuditActionPerformed
 
     private void btnCourseRegistrationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCourseRegistrationActionPerformed
         // TODO add your handling code here:
-        CourseRegistrationJPanel panel = new CourseRegistrationJPanel(workArea, userAccount, courseOfferings, enrollments);
-        splitPane.setRightComponent(panel);
+        // FIX: Always refresh this panel to update credit hour status (CRITICAL)
+        courseRegistrationPanel = new CourseRegistrationJPanel(workArea, userAccount);
+        showFeaturePanel("CourseRegistrationJPanel", courseRegistrationPanel);
+
     }//GEN-LAST:event_btnCourseRegistrationActionPerformed
 
     private void btnTranscriptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTranscriptActionPerformed
         // TODO add your handling code here:
-         TranscriptJPanel panel = new TranscriptJPanel();
-        splitPane.setRightComponent(panel);
+        // --- FINANCIAL GATEKEEPER CHECK (Assignment Requirement) ---
+        if (loggedInStudent != null && loggedInStudent.getTuitionBalance() > 0) {
+            JOptionPane.showMessageDialog(this, 
+                "You have an outstanding tuition balance of $" + String.format("%.2f", loggedInStudent.getTuitionBalance()) +
+                "\n\nPlease pay your tuition to view your transcript.", 
+                "Tuition Balance Due", JOptionPane.WARNING_MESSAGE);
+            
+            // Offer to go to payment page
+            int choice = JOptionPane.showConfirmDialog(this, "Would you like to go to the Tuition Payment page now?", "Pay Tuition", JOptionPane.YES_NO_OPTION);
+            
+            if (choice == JOptionPane.YES_OPTION) {
+                btnTuitionPaymentActionPerformed(evt);
+            }
+            return;
+        }
+        
+        // If paid, show transcript (re-instantiating to recalculate GPA)
+        transcriptPanel = new TranscriptJPanel(workArea, userAccount);
+        showFeaturePanel("TranscriptJPanel", transcriptPanel);
     }//GEN-LAST:event_btnTranscriptActionPerformed
 
     private void btnTuitionPaymentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTuitionPaymentActionPerformed
         // TODO add your handling code here:
-         TuitionPaymentJPanel panel = new TuitionPaymentJPanel();
-        splitPane.setRightComponent(panel);
+        if (tuitionPaymentPanel == null) {
+            tuitionPaymentPanel = new TuitionPaymentJPanel(workArea, userAccount);
+        }
+        // Always re-instantiate payment panel to refresh balances from central store
+        tuitionPaymentPanel = new TuitionPaymentJPanel(workArea, userAccount);
+        showFeaturePanel("TuitionPaymentJPanel", tuitionPaymentPanel);
     }//GEN-LAST:event_btnTuitionPaymentActionPerformed
 
     private void btnPersonProfileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPersonProfileActionPerformed
         // TODO add your handling code here:
         Person person = userAccount.getProfile().getPerson();
         java.awt.Window win = SwingUtilities.getWindowAncestor(this);
-        JFrame parentFrame = null;
-        if (win instanceof JFrame) parentFrame = (JFrame) win;
+        JFrame parentFrame = (win instanceof JFrame) ? (JFrame) win : null;
+        
+        // ProfileManagementDialog is reusable across all roles
         ProfileManagementDialog dialog = new ProfileManagementDialog(parentFrame, true, person);
         dialog.setVisible(true);
+        
+        // Optional: Refresh dashboard title if name was changed
+        lblTitle.setText("Welcome " + loggedInStudent.getPerson().getName());
     }//GEN-LAST:event_btnPersonProfileActionPerformed
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
-         JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
-        this.mainWorkArea.remove(this);
-        CardLayout layout = (CardLayout) this.mainWorkArea.getLayout();
-        layout.previous(this.mainWorkArea);
+        JOptionPane.showMessageDialog(this, "Logged out successfully!", "Logout", JOptionPane.INFORMATION_MESSAGE);
+        
+        MainJFrame mainFrame = (MainJFrame) SwingUtilities.getWindowAncestor(this);
+        if (mainFrame != null) {
+            mainFrame.showLoginPanel(); 
+        }
     }//GEN-LAST:event_btnLogoutActionPerformed
 
 
