@@ -4,6 +4,7 @@
  */
 package UI.AdminRole;
 
+
 import Model.User.UserAccountDirectory;
 import Model.User.UserAccount;
 import Model.Profile;
@@ -11,12 +12,14 @@ import Model.ProfileEnum;
 import Model.CourseOffering;
 import Model.Enrollment;
 import Model.FinancialRecord;
+import Model.accesscontrol.ConfigureJTable; // Required to pull live data
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.swing.table.DefaultTableModel;
-
+import javax.swing.JOptionPane;
 /**
  *
  * @author gagan
@@ -24,10 +27,9 @@ import javax.swing.table.DefaultTableModel;
 public class AnalyticsDashboardJPanel extends javax.swing.JPanel {
 
     private UserAccountDirectory accountDirectory; // injected from parent
-    // Data lists populated by other panels via setters (no mocks here)
-    private List<CourseOffering> offerings = new ArrayList<>();
-    private List<Enrollment> enrollments = new ArrayList<>();
-    private List<FinancialRecord> financialRecords = new ArrayList<>();
+    
+    // NOTE: The panel will now PULL data from ConfigureJTable when needed, 
+    // instead of relying on external setters/injected lists.
 
     /**
      * Creates new form AnalyticsDashboardJPanel
@@ -35,30 +37,88 @@ public class AnalyticsDashboardJPanel extends javax.swing.JPanel {
     public AnalyticsDashboardJPanel() {
         initComponents();
         populateMetricCombo();
-        populateAnalyticsTable();
+        // Initial call relies on ConfigureJTable being set by LoginPanel
+        populateAnalyticsTable(); 
     }
 
     public AnalyticsDashboardJPanel(UserAccountDirectory accountDirectory) {
         initComponents();
         this.accountDirectory = accountDirectory;
         populateMetricCombo();
-        populateAnalyticsTable();
+        // Initial call relies on ConfigureJTable being set by LoginPanel
+        populateAnalyticsTable(); 
     }
 
-    public void setOfferings(List<CourseOffering> offerings) {
-        this.offerings = offerings != null ? offerings : new ArrayList<>();
-        populateAnalyticsTable();
+    // --- Data Retrieval Methods (PULLING FROM CONFIGUREJTABLE) ---
+    // These methods now directly access the static lists.
+
+    private Map<String, Integer> getActiveUsersByRole() {
+        if (this.accountDirectory == null) return null;
+        Map<String, Integer> map = new HashMap<>();
+        
+        // Initialize map with all roles having a count of 0
+        for (ProfileEnum pe : ProfileEnum.values()) map.put(pe.toString(), 0);
+        
+        for (UserAccount ua : accountDirectory.getUserAccountList()) {
+            Profile p = ua.getProfile();
+            if (p != null) {
+                String role = p.getRole();
+                map.put(role, map.getOrDefault(role, 0) + 1);
+            }
+        }
+        return map;
     }
 
-    public void setEnrollments(List<Enrollment> enrollments) {
-        this.enrollments = enrollments != null ? enrollments : new ArrayList<>();
-        populateAnalyticsTable();
+    private Map<String, Integer> getCoursesOfferedPerSemester() {
+        // Data comes from the central list
+        List<CourseOffering> offerings = ConfigureJTable.courseOfferingList;
+        Map<String, Integer> map = new HashMap<>();
+        for (CourseOffering o : offerings) {
+            map.put(o.getSemester(), map.getOrDefault(o.getSemester(), 0) + 1);
+        }
+        return map;
     }
 
-    public void setFinancialRecords(List<FinancialRecord> records) {
-        this.financialRecords = records != null ? records : new ArrayList<>();
-        populateAnalyticsTable();
+    private Map<String, Integer> getEnrolledStudentsPerCourse() {
+        // Data comes from the central list
+        List<Enrollment> enrollments = ConfigureJTable.enrollmentList;
+        Map<String, Integer> map = new HashMap<>();
+        for (Enrollment e : enrollments) {
+            // Only count active enrollments
+            if (e.isActive()) { 
+                String courseKey = e.getCourseOffering().getCourse().getCourseID() + " - " + e.getCourseOffering().getCourse().getName();
+                map.put(courseKey, map.getOrDefault(courseKey, 0) + 1);
+            }
+        }
+        return map;
     }
+
+    private double getTuitionRevenueSummary() {
+        // Data comes from the central list
+        List<FinancialRecord> records = ConfigureJTable.financialRecordList;
+        double sum = 0.0;
+        for (FinancialRecord fr : records) {
+            // Only sum PAID records
+            if (fr.getType() != null && fr.getType().equalsIgnoreCase("PAID")) {
+                sum += fr.getAmount();
+            }
+        }
+        return sum;
+    }
+
+    private Map<String, Double> getTuitionRevenuePerSemester() {
+        // Data comes from the central list
+        List<FinancialRecord> records = ConfigureJTable.financialRecordList;
+        Map<String, Double> map = new HashMap<>();
+        for (FinancialRecord fr : records) {
+            if (fr.getType() != null && fr.getType().equalsIgnoreCase("PAID")) {
+                map.put(fr.getSemester(), map.getOrDefault(fr.getSemester(), 0.0) + fr.getAmount());
+            }
+        }
+        return map;
+    }
+    // --- End Data Retrieval Methods ---
+
 
     private void populateMetricCombo() {
         comboxMetric.removeAllItems();
@@ -121,67 +181,9 @@ public class AnalyticsDashboardJPanel extends javax.swing.JPanel {
                 break;
             }
             default:
-                populateAnalyticsTable();
+                // Default case, should not be hit
+                break;
         }
-    }
-
-    private Map<String, Integer> getActiveUsersByRole() {
-        if (this.accountDirectory == null) return null;
-        Map<String, Integer> map = new HashMap<>();
-        for (ProfileEnum pe : ProfileEnum.values()) map.put(pe.toString(), 0);
-        for (UserAccount ua : accountDirectory.getUserAccountList()) {
-            Profile p = ua.getProfile();
-            if (p != null) {
-                String role = p.getRole();
-                // Count the presence of a user account for the role. Profiles may not have the
-                // 'active' flag initialized, so count all accounts as active for analytics.
-                map.put(role, map.getOrDefault(role, 0) + 1);
-            }
-        }
-        return map;
-    }
-
-    // No mock creators here — analytics use lists provided via setters.
-
-    private Map<String, Integer> getCoursesOfferedPerSemester() {
-        List<CourseOffering> offerings = this.offerings;
-        Map<String, Integer> map = new HashMap<>();
-        for (CourseOffering o : offerings) {
-            map.put(o.getSemester(), map.getOrDefault(o.getSemester(), 0) + 1);
-        }
-        return map;
-    }
-
-    private Map<String, Integer> getEnrolledStudentsPerCourse() {
-        List<Enrollment> enrollments = this.enrollments;
-        Map<String, Integer> map = new HashMap<>();
-        for (Enrollment e : enrollments) {
-            String courseKey = e.getCourseOffering().getCourse().getCourseID() + " - " + e.getCourseOffering().getCourse().getName();
-            map.put(courseKey, map.getOrDefault(courseKey, 0) + (e.isActive() ? 1 : 0));
-        }
-        return map;
-    }
-
-    private double getTuitionRevenueSummary() {
-        List<FinancialRecord> records = this.financialRecords;
-        double sum = 0.0;
-        for (FinancialRecord fr : records) {
-            if (fr.getType() != null && fr.getType().equalsIgnoreCase("PAID")) {
-                sum += fr.getAmount();
-            }
-        }
-        return sum;
-    }
-
-    private Map<String, Double> getTuitionRevenuePerSemester() {
-        List<FinancialRecord> records = this.financialRecords;
-        Map<String, Double> map = new HashMap<>();
-        for (FinancialRecord fr : records) {
-            if (fr.getType() != null && fr.getType().equalsIgnoreCase("PAID")) {
-                map.put(fr.getSemester(), map.getOrDefault(fr.getSemester(), 0.0) + fr.getAmount());
-            }
-        }
-        return map;
     }
 
     /**

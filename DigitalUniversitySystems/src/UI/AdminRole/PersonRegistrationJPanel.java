@@ -4,11 +4,15 @@
  */
 package UI.AdminRole;
 
+
 import Model.Department;
 import Model.ProfileEnum;
 import Model.User.UserAccountDirectory;
+import Model.PersonService; // Import the service layer
+import Model.User.UserAccount;
 import javax.swing.JOptionPane;
-
+import javax.swing.JPanel;
+import java.util.Arrays;
 /**
  *
  * @author gagan
@@ -16,13 +20,28 @@ import javax.swing.JOptionPane;
 public class PersonRegistrationJPanel extends javax.swing.JPanel {
     
     private UserAccountDirectory accountDirectory;
+    private PersonService personService; // Use the service layer
 
-    /**
-     * Creates new form PersonRegistrationJPanel
-     */
     public PersonRegistrationJPanel(UserAccountDirectory accountDirectory) {
         initComponents();
         this.accountDirectory = accountDirectory;
+        this.personService = new PersonService(accountDirectory); // Initialize service
+        initializeComponents();
+    }
+    
+    private void initializeComponents() {
+        // Populate Role ComboBox
+        comboxRole.removeAllItems();
+        Arrays.stream(ProfileEnum.values()).forEach(p -> {
+            if (p != ProfileEnum.ADMIN) { // Admin cannot register another Admin via this panel
+                comboxRole.addItem(p.toString());
+            }
+        });
+        
+        // Populate Department ComboBox
+        deptComboBox.removeAllItems();
+        deptComboBox.addItem("N/A"); // Default option for Registrar/Admin who don't need a department
+        Arrays.stream(Department.values()).forEach(d -> deptComboBox.addItem(d.toString()));
     }
 
     /**
@@ -183,63 +202,50 @@ public class PersonRegistrationJPanel extends javax.swing.JPanel {
         String un = this.txtUserName.getText().trim();
         String pw = this.txtPassword.getText();
 
-        // Basic required-field validation
+        // Basic required-field validation (Assignment Requirement)
         if (name.isEmpty() || un.isEmpty() || pw.isEmpty() || email.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in Name, Username, Password and Email fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please fill in Name, Username, Password, and Email fields.", "Validation Error", JOptionPane.ERROR_MESSAGE);
             return;
-        }
-
-        // Check for duplicate username or email
-        for (Model.User.UserAccount ua : this.accountDirectory.getUserAccountList()) {
-            if (ua.getUsername() != null && ua.getUsername().equalsIgnoreCase(un)) {
-                JOptionPane.showMessageDialog(this, "Username already exists. Please choose another username.", "Duplicate Username", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            String existingEmail = ua.getProfile().getPerson().getEmail();
-            if (existingEmail != null && existingEmail.equalsIgnoreCase(email)) {
-                JOptionPane.showMessageDialog(this, "E-mail already registered. Please use a different e-mail.", "Duplicate E-mail", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
         }
 
         // Determine profile and department safely
-        Object roleSelection = this.comboxRole.getSelectedItem();
-        if (roleSelection == null) {
-            JOptionPane.showMessageDialog(this, "Please select a role.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        ProfileEnum profile = ProfileEnum.fromProfile(roleSelection.toString());
-        if (profile == null) {
-            JOptionPane.showMessageDialog(this, "Invalid role selected.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        Object deptSelection = this.deptComboBox.getSelectedItem();
-        if (deptSelection == null) {
-            JOptionPane.showMessageDialog(this, "Please select a department.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        Department dept = null;
-        try {
-            dept = Department.valueOf(deptSelection.toString());
-        } catch (IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid department selected.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        this.accountDirectory.newUserAccount(name, contactNum, un, pw, profile, dept, email);
+        String roleString = (String) this.comboxRole.getSelectedItem();
+        ProfileEnum profile = ProfileEnum.fromProfile(roleString); 
         
-        JOptionPane.showMessageDialog(this, "Account Created Successfully");
+        String deptString = (String) this.deptComboBox.getSelectedItem();
+        Department dept = null;
+        if (!deptString.equals("N/A")) {
+             try {
+                dept = Department.valueOf(deptString);
+             } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid department selected.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+             }
+        }
+        
+        // Call Service layer to register and check duplicates (Central Logic)
+        UserAccount newAccount = personService.registerNewPerson(name, contactNum, un, pw, profile, dept, email);
 
-        // Reset all input fields
-        txtName.setText("");
-        txtContactNumber.setText("");
-        txtEmail.setText("");
-        txtUserName.setText("");
-        txtPassword.setText("");
-        comboxRole.setSelectedIndex(0);
-        deptComboBox.setSelectedIndex(0);
+        if (newAccount != null) {
+            JOptionPane.showMessageDialog(this, 
+                "Account Created Successfully!\n" +
+                "New User ID (UNID): " + newAccount.getProfile().getPerson().getUNID(), 
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Reset fields
+            txtName.setText("");
+            txtContactNumber.setText("");
+            txtEmail.setText("");
+            txtUserName.setText("");
+            txtPassword.setText("");
+            comboxRole.setSelectedIndex(0);
+            deptComboBox.setSelectedIndex(0);
+        } else {
+             // Failed due to duplicate or internal error
+             JOptionPane.showMessageDialog(this, 
+                 "Registration Failed: Username or Email already exists.", 
+                 "Duplicate Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnRegisterActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
