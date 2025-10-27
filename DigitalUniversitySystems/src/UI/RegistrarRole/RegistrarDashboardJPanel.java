@@ -34,11 +34,12 @@ public class RegistrarDashboardJPanel extends javax.swing.JPanel {
     
     // --- ORIGINAL CONSTRUCTOR (RETAINS FUNCTIONALITY) ---
     public RegistrarDashboardJPanel(JPanel container, UserAccountDirectory directory, UserAccount userAccount) {
+        this((MainJFrame) SwingUtilities.getWindowAncestor(container), (Registrar) userAccount.getProfile());
+
         // 1. Store the directory immediately
         this.accountDirectory = directory; 
         
         // 2. Call the original constructor using 'this'
-        this((MainJFrame) SwingUtilities.getWindowAncestor(container), (Registrar) userAccount.getProfile());
         
         // 3. NOW initialize the panels using the directory
         initializeWorkAreaPanels(); 
